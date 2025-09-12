@@ -10,8 +10,6 @@
 
 ## Resources
 
--  Miro Flow: [https://miro.com/app/board/uXjVILKzzrE=/?share_link_id=2980115032](https://miro.com/app/board/uXjVILKzzrE=/?share_link_id=2980115032)
-
 ## 🚀 [Installation](./core/INSTALL.md)
 
 -  Prerequisites
