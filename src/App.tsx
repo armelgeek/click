@@ -1,35 +1,40 @@
-import { useState } from 'react'
-import reactLogo from './assets/react.svg'
-import viteLogo from '/vite.svg'
-import './App.css'
+import { useEffect, useState } from 'react';
+import './App.css';
 
 function App() {
-  const [count, setCount] = useState(0)
+  const [isOnline, setIsOnline] = useState(navigator.onLine);
+
+  useEffect(() => {
+    const handleOnline = () => setIsOnline(true);
+    const handleOffline = () => setIsOnline(false);
+    window.addEventListener('online', handleOnline);
+    window.addEventListener('offline', handleOffline);
+    return () => {
+      window.removeEventListener('online', handleOnline);
+      window.removeEventListener('offline', handleOffline);
+    };
+  }, []);
 
   return (
-    <>
-      <div>
-        <a href="https://vitejs.dev" target="_blank">
-          <img src={viteLogo} className="logo" alt="Vite logo" />
-        </a>
-        <a href="https://react.dev" target="_blank">
-          <img src={reactLogo} className="logo react" alt="React logo" />
-        </a>
-      </div>
-      <h1>Vite + React</h1>
-      <div className="card">
-        <button onClick={() => setCount((count) => count + 1)}>
-          count is {count}
-        </button>
-        <p>
-          Edit <code>src/App.tsx</code> and save to test HMR
+    <main className="app-container">
+      <header>
+        <img src="/vite.svg" alt="Vite Logo" width={64} height={64} />
+        <h1>VapoStore</h1>
+        <p>Votre starter React + Vite PWA</p>
+      </header>
+      <section>
+        <button className="primary-btn">Découvrir</button>
+        <p className={isOnline ? 'online' : 'offline'}>
+          {isOnline ? 'En ligne' : 'Hors ligne'}
         </p>
-      </div>
-      <p className="read-the-docs">
-        Click on the Vite and React logos to learn more
-      </p>
-    </>
-  )
+      </section>
+      <footer>
+        <small>
+          PWA Ready • <a href="https://vite-pwa-org.netlify.app/" target="_blank" rel="noopener noreferrer">Doc vite-plugin-pwa</a>
+        </small>
+      </footer>
+    </main>
+  );
 }
 
-export default App
+export default App;
