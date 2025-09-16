@@ -1,6 +1,8 @@
+import path from "path";
 import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react-swc'
 import { VitePWA } from 'vite-plugin-pwa'
+import tailwindcss from "@tailwindcss/vite";
 
 // https://vitejs.dev/config/
 export default defineConfig({
@@ -36,5 +38,15 @@ export default defineConfig({
         enabled: true,
       },
     }),
+    tailwindcss()
   ],
+  resolve: {
+    alias: {
+      "@": path.resolve(__dirname, "./src"),
+    },
+  },
+  define: {
+    "process.env": {},
+    "process.env.VITE_APP_SERVER_URL": JSON.stringify(process.env.VITE_APP_SERVER_URL)
+  },
 })
