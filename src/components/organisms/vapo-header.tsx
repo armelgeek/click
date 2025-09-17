@@ -1,12 +1,15 @@
-import Typography from '../atoms/Typography';
-import IconButton from '../atoms/IconButton';
+import Typography from '../atoms/typography';
+import IconButton from '../atoms/icon-button';
 import BellIcon from '../icons/BellIcon';
 //import CartIcon from '../icons/CartIcon';
 import MenuIcon from '../icons/MenuIcon';
-
+import CloseIcon from '../icons/close-icon';
+import { useState } from 'react';
+import SideMenu from './side-menu';
 export default function VapoHeader() {
+    const [menuOpen, setMenuOpen] = useState(false);
     return (
-        <header className="w-full">
+        <header className="w-full relative">
             <div className="bg-vapo-purple-primary text-white text-center py-2 px-4">
                 <Typography variant="caption" className="text-white">
                     « Le vapotage est une transition vers une vie sans tabac puis sans dépendance à la nicotine. Ne vapotez pas si vous ne fumez pas. »
@@ -23,11 +26,19 @@ export default function VapoHeader() {
                     {/**<IconButton aria-label="Panier">
                         <CartIcon className="text-white" />
                     </IconButton>**/}
-                    <IconButton aria-label="Menu">
-                        <MenuIcon className="text-white" />
+                    <IconButton
+                        aria-label={menuOpen ? "Fermer le menu" : "Ouvrir le menu"}
+                        onClick={() => setMenuOpen((v) => !v)}
+                    >
+                        {menuOpen ? (
+                            <CloseIcon className="text-white" />
+                        ) : (
+                            <MenuIcon className="text-white" />
+                        )}
                     </IconButton>
                 </div>
             </div>
+            <SideMenu open={menuOpen} onClose={() => setMenuOpen(false)} />
         </header>
     );
 }

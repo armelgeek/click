@@ -1,4 +1,4 @@
-import Typography from '../atoms/Typography';
+import Typography from '../atoms/typography';
 
 export default function VapoFooter() {
   return (

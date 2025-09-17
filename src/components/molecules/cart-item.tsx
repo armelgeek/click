@@ -1,4 +1,3 @@
-
 import { Checkbox } from '@/shared/components/ui/checkbox';
 
 interface CartItemProps {

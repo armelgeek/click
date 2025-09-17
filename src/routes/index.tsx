@@ -3,7 +3,7 @@ import PublicLayout from "./public-layout";
 import { UiPage } from "@/pages/ui-page";
 import NotFoundPage from "@/pages/not-found-page";
 import { ProtectedLayout } from "./protected-layout";
-import { HomePage } from "@/pages/public/auth/home-page";
+import { HomePage } from "@/pages/public/home/home-page";
 import { RegisterPage } from "@/pages/public/auth/register-page";
 import { LoginPage } from "@/pages/public/auth/login-page";
 import ProfileHomePage from "@/pages/private/profile/home/profile-home-page";

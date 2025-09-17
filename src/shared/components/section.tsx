@@ -1,4 +1,4 @@
-import Typography from "@/components/atoms/Typography";
+import Typography from "@/components/atoms/typography";
 import { PropsWithChildren, ReactNode } from "react";
 
 /**

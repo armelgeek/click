@@ -1,5 +1,5 @@
-import VapoFooter from "@/components/organisms/VapoFooter";
-import VapoHeader from "@/components/organisms/VapoHeader";
+import VapoFooter from "@/components/organisms/vapo-footer";
+import VapoHeader from "@/components/organisms/vapo-header";
 import { Outlet } from "react-router";
 export default function PublicLayout() {
     return (

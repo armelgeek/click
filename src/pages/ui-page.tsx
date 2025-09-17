@@ -1,9 +1,9 @@
-import VapoHeader from '../components/organisms/VapoHeader';
-import VapoFooter from '../components/organisms/VapoFooter';
-import CategoryIcon from '../components/atoms/CategoryIcon';
-import ProductCard from '../components/molecules/ProductCard';
-import CartItem from '../components/molecules/CartItem';
-import StoreCard from '../components/molecules/StoreCard';
+import VapoHeader from '../components/organisms/vapo-header';
+import VapoFooter from '../components/organisms/vapo-footer';
+import CategoryIcon from '../components/atoms/category-icon';
+import ProductCard from '../components/molecules/product-card';
+import CartItem from '../components/molecules/cart-item';
+import StoreCard from '../components/molecules/store-card';
 import { Input } from '../shared/components/ui/input';
 import { Info, SearchIcon } from 'lucide-react';
 import { RadioGroup, RadioGroupItem } from '../shared/components/ui/radio-group';
