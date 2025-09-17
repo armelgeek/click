@@ -24,7 +24,7 @@ export default function CartItem({
     className = '',
 }: CartItemProps) {
     return (
-        <div className={`flex  gap-4 w-full py-3 ${className}`}>
+        <div className={`flex gap-4 w-full flex-1 py-3 ${className}`}>
             <div className='flex flex-col justify-center'>
                 <Checkbox
                     onCheckedChange={onSelect}

@@ -1,7 +1,7 @@
 import Typography from '../atoms/Typography';
 import IconButton from '../atoms/IconButton';
 import BellIcon from '../icons/BellIcon';
-import CartIcon from '../icons/CartIcon';
+//import CartIcon from '../icons/CartIcon';
 import MenuIcon from '../icons/MenuIcon';
 
 export default function VapoHeader() {
@@ -20,9 +20,9 @@ export default function VapoHeader() {
                     <IconButton notification aria-label="Notifications">
                         <BellIcon className="text-white" />
                     </IconButton>
-                    <IconButton aria-label="Panier">
+                    {/**<IconButton aria-label="Panier">
                         <CartIcon className="text-white" />
-                    </IconButton>
+                    </IconButton>**/}
                     <IconButton aria-label="Menu">
                         <MenuIcon className="text-white" />
                     </IconButton>
