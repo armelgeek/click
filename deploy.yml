@@ -1,0 +1,41 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: vapostore-uber-mobil-admin
+  labels:
+    app: vapostore-uber-mobil-admin
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: vapostore-uber-mobil-admin
+  template:
+    metadata:
+      labels:
+        app: vapostore-uber-mobil-admin
+    spec:
+      containers:
+        - name: vapostore-uber-mobil-admin
+          image: registry.meko.ac/vapostore_uber-mobil_admin_app:latest
+          imagePullPolicy: IfNotPresent
+          ports:
+            - containerPort: 5173
+          envFrom:
+            - configMapRef:
+                name: clicknvape-mobil-admin-config
+      imagePullSecrets:
+        - name: nexus-registry-secret
+---
+# --- Service backend (ClusterIP interne) ---
+apiVersion: v1
+kind: Service
+metadata:
+  name: vapostore-uber-mobil-admin-service
+spec:
+  type: NodePort  
+  selector:
+    app: vapostore-uber-mobil-admin
+  ports:
+    - port: 5173
+      targetPort: 5173
+      nodePort: 30073
