@@ -12,12 +12,15 @@ import { Label } from '@/shared/components/ui/label';
 import { LoadingSpinner } from '@/components/atoms/loading-spinner';
 import { CUSTOMER_ROLE } from '@/shared/config/ common';
 import { useState } from 'react';
+import Toast from '@/components/atoms/toast';
 import DatePicker from 'react-datepicker';
 import 'react-datepicker/dist/react-datepicker.css';
 import { fr } from 'date-fns/locale';
+
 export default function RegisterForm() {
     const navigate = useNavigate();
     const [loading, setLoading] = useState(false);
+    const [toast, setToast] = useState<{ open: boolean; message: string }>({ open: false, message: '' });
     const {
         control,
         handleSubmit,
@@ -34,7 +37,7 @@ export default function RegisterForm() {
             confirmPassword: '',
             terms: true,
         },
-        mode: 'onChange',
+        mode: 'onSubmit',
     });
 
     const onSubmit = async (data: RegisterFormValues) => {
@@ -51,13 +54,20 @@ export default function RegisterForm() {
             setLoading(false);
             navigate('/profile/home');
         } catch (e) {
+            setLoading(false);
             // eslint-disable-next-line @typescript-eslint/no-explicit-any
-            setError('email', { message: (e as any)?.message || "Erreur lors de l'inscription" });
+            const msg = (e as any)?.message || '';
+            if (msg.includes('Failed to fetch')) {
+                setToast({ open: true, message: "Impossible de se connecter au serveur. Vérifiez votre connexion internet." });
+            } else {
+                setError('email', { message: msg || "Erreur lors de l'inscription" });
+            }
         }
     };
 
     return (
         <div className="relative w-full max-w-sm">
+            <Toast open={toast.open} message={toast.message} onClose={() => setToast({ open: false, message: '' })} />
             {loading && (
                 <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
                     <LoadingSpinner size={56} />

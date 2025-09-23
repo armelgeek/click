@@ -2,9 +2,14 @@ import { useEffect, useState } from 'react';
 import { createBrowserRouter, RouterProvider } from 'react-router';
 import routes from './routes';
 import { Provider } from './provider';
+import NetworkStatusBanner from './components/atoms/network-status-banner';
+import AgeWarningModal from './components/organisms/age-warning-modal';
 const router = createBrowserRouter(routes);
 function App() {
   const [, setIsOnline] = useState(navigator.onLine);
+  const [ageAccepted, setAgeAccepted] = useState(() => {
+    return localStorage.getItem('ageAccepted') === 'true';
+  });
 
   useEffect(() => {
     const handleOnline = () => setIsOnline(true);
@@ -17,8 +22,21 @@ function App() {
     };
   }, []);
 
+  const handleAccept = () => {
+    localStorage.setItem('ageAccepted', 'true');
+    setAgeAccepted(true);
+  };
+  const handleQuit = () => {
+    if (window.close && window.top === window.self) {
+      window.close();
+    }
+    document.body.innerHTML = '<div style="display:flex;align-items:center;justify-content:center;height:100vh;"><h2 style="color:#9333ea;font-family:sans-serif;">Accès refusé</h2></div>';
+  };
+
   return (
     <Provider>
+      <NetworkStatusBanner />
+      <AgeWarningModal open={!ageAccepted} onAccept={handleAccept} onQuit={handleQuit} />
       <RouterProvider router={router} />
     </Provider>
   );

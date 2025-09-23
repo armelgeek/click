@@ -21,7 +21,7 @@ export default function LoginForm() {
             email: '',
             password: '',
         },
-        mode: 'onChange',
+        mode: 'onSubmit',
     });
 
     const onSubmit = async (data: LoginFormValues) => {
