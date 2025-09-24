@@ -27,7 +27,7 @@ build:
       echo " Connecting to remote server to build image..."
       ssh -o StrictHostKeyChecking=no -i ~/.ssh/ssh_key $SSH_USER@$SSH_IP <<EOF
         set -e
-        cd "$REMOTE_DIR" || exit 1
+        cd "/home/project/mobile-app" || exit 1
 
         echo "Login to registry"
         echo "$REGISTRY_PASS" | docker login $DOCKER_REGISTRY -u $REGISTRY_USER --password-stdin
