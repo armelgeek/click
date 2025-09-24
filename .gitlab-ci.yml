@@ -65,7 +65,7 @@ deploy:
         echo "Deployment successful."
         
         # Nettoyage
-        docker images --format '{{.Repository}} {{.ID}}' |grep '^registry.meko.ac/vapostore-mobil-app' | awk '{print $2}' | xargs -r docker rmi -f
+        docker images --format '{{.Repository}} {{.ID}}' |grep '^registry.meko.ac/vapostore_uber-mobil_admin' | awk '{print $2}' | xargs -r docker rmi -f
         docker buildx prune -f
 
       EOF
