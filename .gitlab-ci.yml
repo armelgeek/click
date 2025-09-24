@@ -33,7 +33,7 @@ build:
         echo "$REGISTRY_PASS" | docker login $DOCKER_REGISTRY -u $REGISTRY_USER --password-stdin
 
         echo "Pulling latest changes from repo & building "
-        git pull origin develop
+        git pull origin dev
         docker build -t "$IMAGE_NAME" .
 
         echo "Pushing image"
@@ -42,7 +42,7 @@ build:
         echo "Build ok"
       EOF
   only:
-    - develop
+    - dev
 
 deploy:
   stage: deploy
@@ -59,16 +59,16 @@ deploy:
                
         echo "Replacing image tag and deploying updated front..."
         echo "$IMAGE_TAG"
-        sed "s|image: .*|image: $IMAGE_NAME|" deploy.yml | tee /tmp/vapostore-admin.yml | microk8s kubectl apply -f -
-        cat /tmp/vapostore-admin.yml
+        sed "s|image: .*|image: $IMAGE_NAME|" deploy.yml | tee /tmp/vapostore-mobil-app.yml | microk8s kubectl apply -f -
+        cat /tmp/vapostore-mobil-app.yml
         
         echo "Deployment successful."
         
         # Nettoyage
-        docker images --format '{{.Repository}} {{.ID}}' |grep '^registry.meko.ac/vapostore-admin' | awk '{print $2}' | xargs -r docker rmi -f
+        docker images --format '{{.Repository}} {{.ID}}' |grep '^registry.meko.ac/vapostore-mobil-app' | awk '{print $2}' | xargs -r docker rmi -f
         docker buildx prune -f
 
       EOF
   only: 
-    - develop
+    - dev
 
