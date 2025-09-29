@@ -7,7 +7,7 @@ variables:
   IMAGE_TAG: "$CI_COMMIT_SHORT_SHA"
   REMOTE_DIR: "$REMOTE_DIR"
   DOCKER_REGISTRY: "$REGISTRY_HOST"
-  IMAGE_NAME: "$REGISTRY_HOST/$IMAGE:$IMAGE_TAG"
+  IMAGE_NAME: "$IMAGE:$IMAGE_TAG"
 
 before_script:
   - apk add --no-cache openssh-client
@@ -71,4 +71,3 @@ deploy:
       EOF
   only: 
     - dev
-
