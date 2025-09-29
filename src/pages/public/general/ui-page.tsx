@@ -114,7 +114,7 @@ export function UiPage() {
                 <Label icon={<Info className="text-gray-400" />}>Label avec icône</Label>
                 <Label
                     icon={<Info className="text-vapo-purple-primary" />}
-                    className='text-md text-vapo-purple-primary font-medium'
+                    className='text-base text-vapo-purple-primary font-medium'
                     link={<a href="#" className="flex items-center gap-1 text-sm text-gray-500 hover:underline">Lien</a>}
                 >
                     Label avec icône et lien

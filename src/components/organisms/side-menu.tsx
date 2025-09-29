@@ -43,16 +43,17 @@ export default function SideMenu({ open, onClose }: SideMenuProps) {
                 <button type="button" className="text-left text-white hover:text-vapo-purple-primary transition-colors" onClick={() => { navigate('/settings'); onClose(); }}>Mes adresses</button>
                 <button type="button" className="text-left text-white hover:text-vapo-purple-primary transition-colors" onClick={() => { navigate('/about'); onClose(); }}>A propos</button>
               </nav>
-              <Button variant="vapo" className="w-full h-12 mt-2 text-md" onClick={() => { signOut(); onClose(); }}>
+              <Button variant="vapo" className="w-full h-12 mt-2 text-base" onClick={() => { signOut(); onClose(); }}>
                 Se déconnecter
               </Button>
             </>
           ) : (
             <div className="flex flex-col gap-4 w-full">
                  <img
-                    src="/icons/vapo-logo-white.svg"
+                    src="/icons/vapo-logo-white.png"
                     alt="VapoStore Logo"
-                    className="mb-6 object-contain"
+                    className="mb-6"
+                     width={240}
                 />
               <Button  onClick={() => { navigate('/login'); onClose(); }} variant="secondary" className="w-full h-12 text-lg">
                 Se connecter

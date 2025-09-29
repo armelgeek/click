@@ -12,7 +12,7 @@ export function RegisterPage() {
         <div className="min-h-screen flex py-12 flex-col items-center justify-center bg-white">
             <ResponsiveContainer maxWidth="mobile" centerOnDesktop>
                 <div className="flex flex-col items-center">
-                    <img src="/logo/vapo-logo-2.svg" alt="VapoStore" className="h-12 mb-6" />
+                    <img src="/logo/vapo-logo-2.png" alt="VapoStore" className="h-12 mb-6" />
                     <h1 className="text-2xl font-semibold text-center mb-6">Inscription</h1>
                     <RegisterForm />
                     <div className="flex items-center gap-2 w-full max-w-sm my-6">

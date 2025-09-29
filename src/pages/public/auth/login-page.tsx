@@ -6,7 +6,7 @@ export function LoginPage() {
     const { loading, signInWithProvider: handleSocial } = useSocialAuth();
     return (
         <div className="min-h-screen flex flex-col items-center justify-center bg-white px-8">
-            <img src="/logo/vapo-logo-2.svg" alt="VapoStore" className="h-12 mb-6" />
+            <img src="/logo/vapo-logo-2.png" alt="VapoStore" className="h-12 mb-6" />
             <h1 className="text-2xl font-semibold text-center mb-6">Connexion</h1>
             <LoginForm />
 

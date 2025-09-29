@@ -90,7 +90,7 @@ export default function ProductDetailPage() {
                 </div>
             </div>
             <div className="bg-white rounded-2xl p-4 mt-2">
-                <div className="text-md font-semibold mb-4">D’autres produits qui peuvent vous intéresser !</div>
+                <div className="text-base font-semibold mb-4">D’autres produits qui peuvent vous intéresser !</div>
                 <div className="flex gap-4">
                     {relatedProducts.map(p => (
                         <ProductCard key={p.id} image={p.image} title={p.name} subtitle={p.price.toFixed(2) + ' €'} />

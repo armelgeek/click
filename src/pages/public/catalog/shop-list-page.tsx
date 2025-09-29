@@ -43,7 +43,7 @@ export default function ShopListPage() {
         placeholder="Rechercher des produits ou magasin"
         rightIcon={<Search/>}
       />
-      <Label icon={<Box className="text-vapo-purple-primary w-5 h-5" />} className="text-vapo-purple-primary text-md font-semibold mb-2">
+      <Label icon={<Box className="text-vapo-purple-primary w-5 h-5" />} className="text-vapo-purple-primary text-base font-semibold mb-2">
         Catégorie des produits populaires
       </Label>
       <div className="flex justify-between mb-4">
@@ -56,7 +56,7 @@ export default function ShopListPage() {
           <CategoryIcon key={cat.label}  label={cat.label} />
         ))}
       </div>
-      <Label icon={<Gem className="text-vapo-purple-primary w-5 h-5" />} className="text-vapo-purple-primary text-md font-semibold mb-2">
+      <Label icon={<Gem className="text-vapo-purple-primary w-5 h-5" />} className="text-vapo-purple-primary text-base font-semibold mb-2">
         Les magasins Vapostore près de vous!
       </Label>
       <div className="flex gap-4 overflow-x-auto pb-2">
@@ -66,7 +66,7 @@ export default function ShopListPage() {
           </div>
         ))}
       </div>
-      <Label icon={<MapPin className="text-vapo-purple-primary w-5 h-5" />} className="text-vapo-purple-primary text-md font-semibold mt-4 mb-2">
+      <Label icon={<MapPin className="text-vapo-purple-primary w-5 h-5" />} className="text-vapo-purple-primary text-base font-semibold mt-4 mb-2">
         Autres magasins
       </Label>
       <div className="flex gap-4 mb-2">

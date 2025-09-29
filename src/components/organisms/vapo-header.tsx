@@ -19,7 +19,7 @@ export default function VapoHeader() {
             </div>
             <div className="bg-gray-800 flex items-center justify-between px-4 py-3">
                 <Link className="flex items-center cursor-pointer" to={'/'}  >
-                    <img src="/icons/vapo-logo-white.svg" alt="VapoStore Logo"  />
+                    <img src="/icons/vapo-logo-white.png" width={200} alt="VapoStore Logo"  />
                 </Link>
                 <div className="flex items-center gap-1">
                     <PWAInstallButton variant="icon" />

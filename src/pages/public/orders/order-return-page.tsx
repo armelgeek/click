@@ -31,11 +31,11 @@ export default function OrderReturnPage() {
       <div className="bg-white rounded-2xl p-6 flex flex-col gap-4">
         <div className="text-xl font-semibold mb-2">Prochaine livraison</div>
         <div className="flex flex-col gap-2 text-gray-800 text-base">
-          <div className="flex items-center text-md gap-2">
+          <div className="flex items-center text-base gap-2">
             <Clock className="w-5 h-5" />
             Date et heure : <span className="text-vapo-purple-primary font-medium">27 Juin 2024 à 09h00</span>
           </div>
-          <div className="flex items-center gap-2 text-md">
+          <div className="flex items-center gap-2 text-base">
             <MapPin className="w-5 h-5" />
             Lieu de la livraison : <span className="text-vapo-purple-primary font-medium">2405 Gare Paris</span>
           </div>

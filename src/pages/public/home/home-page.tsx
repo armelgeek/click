@@ -7,7 +7,7 @@ import { Label } from '@/shared/components/ui/label';
 
 export function HomePage() {
     return (
-        <div className="min-h-screen  text-white px-4 py-4 flex flex-col gap-6">
+        <div className="min-h-screen text-white px-4 py-4 flex flex-col gap-6 font-inter">
             <Input
                 placeholder="Rechercher des produits ou magasin"
                 variant="search"
@@ -15,7 +15,7 @@ export function HomePage() {
             />
 
             <div className="flex items-center gap-2 mb-2">
-                <Label icon={<img src='/icons/diamon.svg' className="text-vapo-purple-primary w-6 h-6" />} className="text-vapo-purple-primary text-md font-bold">
+                <Label icon={<img src='/icons/diamon.svg' className="text-vapo-purple-primary w-6 h-6" />} className="text-vapo-purple-primary font-bold" style={{ fontFamily: 'Orbitron, sans-serif' }}>
                     Les magasins Vapostore près de vous!
                 </Label>
             </div>
@@ -27,8 +27,9 @@ export function HomePage() {
             </div>
 
             <div className="flex items-center gap-2 mb-2 mt-4">
-                <img src='/icons/map.svg' className="text-vapo-purple-primary w-6 h-6" />
-                <span className="text-vapo-purple-primary text-xl font-bold">Autres magasins</span>
+                 <Label icon={<img src='/icons/map.svg' className="text-vapo-purple-primary w-6 h-6" />} className="text-vapo-purple-primary font-bold" style={{ fontFamily: 'Orbitron, sans-serif' }}>
+                    Autres magasins
+                </Label>
             </div>
             <div className="grid grid-cols-2 gap-3 mb-2">
                 <Select>
