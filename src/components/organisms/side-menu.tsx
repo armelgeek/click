@@ -21,7 +21,7 @@ export default function SideMenu({ open, onClose }: SideMenuProps) {
         onClick={onClose}
         aria-label="Fermer le menu"
       />
-      <div className="fixed left-1/2 top-1/5 z-50 -translate-x-1/2 flex justify-center w-1/4 pointer-events-none">
+      <div className="fixed left-1/2 top-1/5 z-50 -translate-x-1/2 flex justify-center sm:w-1/4 pointer-events-none">
         <div
           className="relative bg-neutral-900 shadow-2xl p-8 flex flex-col items-center w-full pointer-events-auto border border-gray-700 rounded-xl"
           onClick={e => e.stopPropagation()}

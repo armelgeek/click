@@ -31,9 +31,10 @@ export default function LoginForm() {
             await signIn.email({
                 email: data.email,
                 password: data.password,
-            });
+            }).finally(()=> navigate('/profile/home'));
+
             setLoading(false);
-            navigate('/profile/home');
+            
         } catch (e) {
             setLoading(false);
             const error = e as { message?: string };
