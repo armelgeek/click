@@ -26,7 +26,7 @@ export default function PWAInstallButton({
 
   useEffect(() => {
     const isStandalone = window.matchMedia('(display-mode: standalone)').matches;
-    const isInWebAppiOS = (window.navigator as any).standalone === true;
+    const isInWebAppiOS = (window.navigator as { standalone?: boolean }).standalone === true;
     const isInstalled = isStandalone || isInWebAppiOS;
     
     setIsInstalled(isInstalled);

@@ -21,6 +21,7 @@ import OrderProofPage from '@/pages/public/orders/order-proof-page';
 import OrderSignatureProofPage from '@/pages/public/orders/order-signature-proof-page';
 import OrderDetailPage from '@/pages/public/orders/order-detail-page';
 import ProfileHomePage from "@/pages/private/profile/home/profile-home-page";
+import { AuthGuard } from "./auth-guard";
 
 const privateRoutes: RouteObject[] = [
     {
@@ -84,6 +85,7 @@ const publicRoutes: RouteObject[] = [
     },
     {
         path: '/',
+        element: <AuthGuard />,
         children: [
             {
                 index: true,

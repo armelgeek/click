@@ -7,10 +7,12 @@ import { loginSchema, LoginFormValues } from '../types/login.schema';
 import { signIn } from '@/shared/config/auth.config';
 import { useNavigate } from 'react-router';
 import { useState } from 'react';
+import { useToast } from '@/hooks/use-toast';
 
 export default function LoginForm() {
     const navigate = useNavigate();
     const [loading, setLoading] = useState(false);
+    const { success, error: showErrorToast } = useToast();
     const {
         control,
         handleSubmit,
@@ -28,17 +30,48 @@ export default function LoginForm() {
     const onSubmit = async (data: LoginFormValues) => {
         try {
             setLoading(true);
-            await signIn.email({
+            
+            const result = await signIn.email({
                 email: data.email,
                 password: data.password,
-            }).finally(()=> navigate('/profile/home'));
-
-            setLoading(false);
+            });
+            
+            if (result?.data) {
+                success('Connexion réussie ! Redirection en cours...');
+                setTimeout(() => {
+                    navigate('/profile/home');
+                }, 1000);
+            } else {
+                throw new Error('Erreur lors de la connexion');
+            }
             
         } catch (e) {
+            const error = e as { message?: string; code?: string };
+            let errorMessage = 'Erreur lors de la connexion';
+            
+            if (error.message) {
+                if (error.message.includes('Invalid credentials') || 
+                    error.message.includes('invalid') || 
+                    error.code === 'INVALID_CREDENTIALS') {
+                    errorMessage = 'Email ou mot de passe incorrect';
+                } else if (error.message.includes('User not found') || 
+                          error.code === 'USER_NOT_FOUND') {
+                    errorMessage = 'Aucun compte trouvé avec cet email';
+                } else if (error.message.includes('Too many requests') || 
+                          error.code === 'TOO_MANY_REQUESTS') {
+                    errorMessage = 'Trop de tentatives. Veuillez réessayer plus tard';
+                } else if (error.message.includes('Network') || 
+                          error.code === 'NETWORK_ERROR') {
+                    errorMessage = 'Erreur de réseau. Vérifiez votre connexion';
+                } else {
+                    errorMessage = error.message;
+                }
+            }
+            
+            showErrorToast(errorMessage);
+            setError('email', { message: errorMessage });
+        } finally {
             setLoading(false);
-            const error = e as { message?: string };
-            setError('email', { message: error?.message || 'Erreur lors de la connexion' });
         }
     };
 

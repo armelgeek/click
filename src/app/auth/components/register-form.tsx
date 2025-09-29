@@ -13,7 +13,7 @@ import { Label } from '@/shared/components/ui/label';
 import { LoadingSpinner } from '@/components/atoms/loading-spinner';
 import { CUSTOMER_ROLE } from '@/shared/config/ common';
 import { useState } from 'react';
-import Toast from '@/components/atoms/toast';
+import { useToast } from '@/hooks/use-toast';
 import DatePicker from 'react-datepicker';
 import 'react-datepicker/dist/react-datepicker.css';
 import { fr } from 'date-fns/locale';
@@ -23,7 +23,7 @@ export default function RegisterForm() {
     const navigate = useNavigate();
     const [loading, setLoading] = useState(false);
     const [showIdentityModal, setShowIdentityModal] = useState(false);
-    const [toast, setToast] = useState<{ open: boolean; message: string }>({ open: false, message: '' });
+    const { success, error: showErrorToast } = useToast();
     const {
         control,
         handleSubmit,
@@ -46,7 +46,8 @@ export default function RegisterForm() {
     const onSubmit = async (data: RegisterFormValues) => {
         try {
             setLoading(true);
-            await signUp.email({
+            
+            const result = await signUp.email({
                 name: data.name,
                 email: data.email,
                 phoneNumber: data.phone,
@@ -54,23 +55,44 @@ export default function RegisterForm() {
                 role: CUSTOMER_ROLE,
                 password: data.password,
             });
-            setLoading(false);
-            setShowIdentityModal(true);
-        } catch (e) {
-            setLoading(false);
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any
-            const msg = (e as any)?.message || '';
-            if (msg.includes('Failed to fetch')) {
-                setToast({ open: true, message: "Impossible de se connecter au serveur. Vérifiez votre connexion internet." });
+            
+            if (result?.data) {
+                success('Inscription réussie ! Vérification d\'identité requise');
+                setShowIdentityModal(true);
             } else {
-                setError('email', { message: msg || "Erreur lors de l'inscription" });
+                throw new Error('Erreur lors de l\'inscription');
             }
+            
+        } catch (e) {
+            const error = e as { message?: string; code?: string };
+            let errorMessage = 'Erreur lors de l\'inscription';
+            
+            if (error.message) {
+                if (error.message.includes('Failed to fetch') || 
+                    error.code === 'NETWORK_ERROR') {
+                    errorMessage = 'Impossible de se connecter au serveur. Vérifiez votre connexion internet';
+                } else if (error.message.includes('email') && 
+                          error.message.includes('already') ||
+                          error.code === 'EMAIL_ALREADY_EXISTS') {
+                    errorMessage = 'Cette adresse email est déjà utilisée';
+                } else if (error.message.includes('validation') ||
+                          error.code === 'VALIDATION_ERROR') {
+                    errorMessage = 'Données invalides. Vérifiez vos informations';
+                } else {
+                    errorMessage = error.message;
+                }
+            }
+            
+            showErrorToast(errorMessage);
+            setError('email', { message: errorMessage });
+        } finally {
+            setLoading(false);
         }
     };
 
     const handleVerificationSuccess = () => {
         setShowIdentityModal(false);
-        setToast({ open: true, message: "Inscription et vérification d'identité complétées avec succès !" });
+        success('Inscription et vérification d\'identité complétées avec succès !');
         setTimeout(() => {
             navigate('/profile/home');
         }, 2000);
@@ -78,12 +100,12 @@ export default function RegisterForm() {
 
     const handleVerificationSkip = () => {
         setShowIdentityModal(false);
+        success('Inscription réussie ! Vous pourrez vérifier votre identité plus tard');
         navigate('/profile/home');
     };
 
     return (
         <div className="relative w-full max-w-sm">
-            <Toast open={toast.open} message={toast.message} onClose={() => setToast({ open: false, message: '' })} />
             {loading && (
                 <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
                     <LoadingSpinner size={56} />
