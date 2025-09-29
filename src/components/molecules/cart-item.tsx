@@ -17,15 +17,17 @@ export default function CartItem({
     title,
     subtitle,
     quantity,
+    selected,
     onSelect,
     onIncrement,
     onDecrement,
     className = '',
 }: CartItemProps) {
     return (
-        <div className={`flex gap-4 w-full flex-1 py-3 ${className}`}>
+        <div className={`flex gap-3 w-full flex-1 py-3 ${className}`}>
             <div className='flex flex-col justify-center'>
                 <Checkbox
+                    checked={selected}
                     onCheckedChange={onSelect}
                     className="w-8 h-8 rounded-lg bg-gray-200 data-[state=checked]:bg-vapo-purple-primary border-none flex items-center justify-center"
                     aria-label="Sélectionner l'article"
@@ -37,7 +39,7 @@ export default function CartItem({
 
 
             <div className="flex flex-col justify-between">
-                <div className="text-black text-lg font-medium truncate">{title}</div>
+                <div className="text-black text-base font-light truncate">{title}</div>
                 <div className='flex flex-row justify-between'>
                     <div>
                         <span className="text-black font-extrabold text-lg mt-1">{subtitle}</span>

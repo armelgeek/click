@@ -3,6 +3,7 @@ import { createBrowserRouter, RouterProvider } from 'react-router';
 import routes from './routes';
 import { Provider } from './provider';
 import NetworkStatusBanner from './components/atoms/network-status-banner';
+import PWAInstallButton from './components/atoms/pwa-install-button';
 import AgeWarningModal from './components/organisms/age-warning-modal';
 const router = createBrowserRouter(routes);
 function App() {
@@ -36,6 +37,7 @@ function App() {
   return (
     <Provider>
       <NetworkStatusBanner />
+      <PWAInstallButton variant="banner" />
       <AgeWarningModal open={!ageAccepted} onAccept={handleAccept} onQuit={handleQuit} />
       <RouterProvider router={router} />
     </Provider>

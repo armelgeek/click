@@ -2,8 +2,33 @@
 @import "tw-animate-css";
 
 @custom-variant dark (&:is(.dark *));
+
 body {
   background-color: #F2F2F6;
+}
+
+/* PWA Mobile-first responsive adjustments */
+@media (min-width: 768px) {
+  /* Desktop optimization for PWA app */
+  body {
+    display: flex;
+    justify-content: center;
+    min-height: 100vh;
+  }
+  
+  #root {
+    width: 100%;
+    max-width: 428px; /* iPhone 14 Pro Max size for optimal mobile experience */
+    background: white;
+    box-shadow: 0 0 20px rgba(0, 0, 0, 0.1);
+    min-height: 100vh;
+  }
+}
+
+@media (min-width: 1024px) {
+  #root {
+    max-width: 480px; /* Slightly larger for desktop */
+  }
 }
 @theme inline {
   --radius-sm: calc(var(--radius) - 4px);

@@ -1,25 +1,28 @@
 import Typography from '../atoms/typography';
 import IconButton from '../atoms/icon-button';
-import BellIcon from '../icons/BellIcon';
+import BellIcon from '../icons/bell-icon';
 //import CartIcon from '../icons/CartIcon';
-import MenuIcon from '../icons/MenuIcon';
+import MenuIcon from '../icons/menu-icon';
 import CloseIcon from '../icons/close-icon';
+import PWAInstallButton from '../atoms/pwa-install-button';
 import { useState } from 'react';
 import SideMenu from './side-menu';
+import { Link } from 'react-router';
 export default function VapoHeader() {
     const [menuOpen, setMenuOpen] = useState(false);
     return (
         <header className="w-full relative">
             <div className="bg-vapo-purple-primary text-white text-center py-2 px-4">
                 <Typography variant="caption" className="text-white">
-                    « Le vapotage est une transition vers une vie sans tabac puis sans dépendance à la nicotine. Ne vapotez pas si vous ne fumez pas. »
+                    « Ne vapotez pas si vous ne fumez pas. »
                 </Typography>
             </div>
             <div className="bg-gray-800 flex items-center justify-between px-4 py-3">
-                <div className="flex items-center">
+                <Link className="flex items-center cursor-pointer" to={'/'}  >
                     <img src="/icons/vapo-logo-white.svg" alt="VapoStore Logo"  />
-                </div>
+                </Link>
                 <div className="flex items-center gap-1">
+                    <PWAInstallButton variant="icon" />
                     <IconButton notification aria-label="Notifications">
                         <BellIcon className="text-white" />
                     </IconButton>

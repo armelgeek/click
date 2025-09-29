@@ -4,6 +4,7 @@ import { registerSchema, RegisterFormValues } from '../types/register.schema';
 import { signUp } from '@/shared/config/auth.config';
 import { useNavigate } from 'react-router';
 import { Input } from '@/shared/components/ui/input';
+import { PasswordInput } from '@/components/atoms/password-input';
 import PhoneInput from 'react-phone-number-input';
 import 'react-phone-number-input/style.css';
 import { Button } from '@/shared/components/ui/button';
@@ -16,10 +17,12 @@ import Toast from '@/components/atoms/toast';
 import DatePicker from 'react-datepicker';
 import 'react-datepicker/dist/react-datepicker.css';
 import { fr } from 'date-fns/locale';
+import IdentityVerificationModal from '@/components/organisms/identity-verification-modal';
 
 export default function RegisterForm() {
     const navigate = useNavigate();
     const [loading, setLoading] = useState(false);
+    const [showIdentityModal, setShowIdentityModal] = useState(false);
     const [toast, setToast] = useState<{ open: boolean; message: string }>({ open: false, message: '' });
     const {
         control,
@@ -52,7 +55,7 @@ export default function RegisterForm() {
                 password: data.password,
             });
             setLoading(false);
-            navigate('/profile/home');
+            setShowIdentityModal(true);
         } catch (e) {
             setLoading(false);
             // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -63,6 +66,19 @@ export default function RegisterForm() {
                 setError('email', { message: msg || "Erreur lors de l'inscription" });
             }
         }
+    };
+
+    const handleVerificationSuccess = () => {
+        setShowIdentityModal(false);
+        setToast({ open: true, message: "Inscription et vérification d'identité complétées avec succès !" });
+        setTimeout(() => {
+            navigate('/profile/home');
+        }, 2000);
+    };
+
+    const handleVerificationSkip = () => {
+        setShowIdentityModal(false);
+        navigate('/profile/home');
     };
 
     return (
@@ -140,7 +156,7 @@ export default function RegisterForm() {
                     control={control}
                     render={({ field }) => (
                         <>
-                            <Input placeholder="Nouveau mot de passe" type="password" {...field} />
+                            <PasswordInput placeholder="Nouveau mot de passe" {...field} />
                             {errors.password && <span className="text-red-500 text-xs mt-1">{errors.password.message}</span>}
                         </>
                     )}
@@ -150,7 +166,7 @@ export default function RegisterForm() {
                     control={control}
                     render={({ field }) => (
                         <>
-                            <Input placeholder="Retapez le nouveau mot de passe" type="password" {...field} />
+                            <PasswordInput placeholder="Retapez le nouveau mot de passe" {...field} />
                             {errors.confirmPassword && <span className="text-red-500 text-xs mt-1">{errors.confirmPassword.message}</span>}
                         </>
                     )}
@@ -170,6 +186,14 @@ export default function RegisterForm() {
                     {loading ? 'Inscription...' : 'Inscription'}
                 </Button>
             </form>
+
+            {/* Identity Verification Modal */}
+            <IdentityVerificationModal
+                open={showIdentityModal}
+                onVerificationSuccess={handleVerificationSuccess}
+                onSkip={handleVerificationSkip}
+                onClose={() => setShowIdentityModal(false)}
+            />
         </div>
     );
 }

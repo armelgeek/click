@@ -5,7 +5,7 @@ export default function PublicLayout() {
     return (
         <>
             <VapoHeader />
-            <div className="z-10 relative w-full h-full">
+            <div className="z-10 relative w-full h-full bg-white">
                 <Outlet />
             </div>
             <VapoFooter />

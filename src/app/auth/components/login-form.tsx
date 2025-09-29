@@ -1,4 +1,5 @@
 import { Input } from '@/shared/components/ui/input';
+import { PasswordInput } from '@/components/atoms/password-input';
 import { Button } from '@/shared/components/ui/button';
 import { useForm, Controller } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -34,8 +35,9 @@ export default function LoginForm() {
             setLoading(false);
             navigate('/profile/home');
         } catch (e) {
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any
-            setError('email', { message: (e as any)?.message || 'Erreur lors de la connexion' });
+            setLoading(false);
+            const error = e as { message?: string };
+            setError('email', { message: error?.message || 'Erreur lors de la connexion' });
         }
     };
 
@@ -59,7 +61,7 @@ export default function LoginForm() {
                     control={control}
                     render={({ field }) => (
                         <>
-                            <Input placeholder="Mot de passe" type="password" {...field} />
+                            <PasswordInput placeholder="Mot de passe" {...field} />
                             {errors.password && <span className="text-red-500 text-xs mt-1">{errors.password.message}</span>}
                         </>
                     )}

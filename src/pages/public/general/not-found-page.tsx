@@ -20,7 +20,7 @@ export default function NotFoundPage() {
             <Typography className="text-center max-w-md text-vapo-purple-primary">
                 La page que vous cherchez n'existe pas ou a été déplacée.
             </Typography>
-            <Button onClick={handleGoHome}>
+            <Button variant='vapo' onClick={handleGoHome}>
                 Retour à l'accueil
             </Button>
         </div>

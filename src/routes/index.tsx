@@ -1,11 +1,25 @@
+import AboutPage from '@/pages/public/general/about-page';
+
+import OrderHistoryPage from '@/pages/public/orders/order-history-page';
+import OrderListPage from '@/pages/public/orders/order-list-page';
+import OrderReturnPage from '@/pages/public/orders/order-return-page';
 import { RouteObject } from "react-router";
 import PublicLayout from "./public-layout";
-import { UiPage } from "@/pages/ui-page";
-import NotFoundPage from "@/pages/not-found-page";
+import { UiPage } from "@/pages/public/general/ui-page";
+import NotFoundPage from "@/pages/public/general/not-found-page";
 import { ProtectedLayout } from "./protected-layout";
+import { shopRoutes } from "./shop-routes";
+import { productRoutes } from "./product-routes";
 import { HomePage } from "@/pages/public/home/home-page";
 import { RegisterPage } from "@/pages/public/auth/register-page";
 import { LoginPage } from "@/pages/public/auth/login-page";
+import CartPage from '@/pages/public/general/cart-page';
+import DeliveryPage from '@/pages/public/general/delivery-page';
+import OrderSuccessPage from '@/pages/public/orders/order-success-page';
+import OrderTrackingPage from '@/pages/public/orders/order-tracking-page';
+import OrderProofPage from '@/pages/public/orders/order-proof-page';
+import OrderSignatureProofPage from '@/pages/public/orders/order-signature-proof-page';
+import OrderDetailPage from '@/pages/public/orders/order-detail-page';
 import ProfileHomePage from "@/pages/private/profile/home/profile-home-page";
 
 const privateRoutes: RouteObject[] = [
@@ -14,7 +28,7 @@ const privateRoutes: RouteObject[] = [
         children: [
             {
                 path: 'home',
-                element: <ProfileHomePage/>
+                element: <ProfileHomePage />
             }
         ],
     },
@@ -25,23 +39,70 @@ const publicRoutes: RouteObject[] = [
         path: '/ui',
         element: <UiPage />,
     },
+    ...shopRoutes,
+    ...productRoutes,
     {
-		path: '/',
-		children: [
-			{
-				index: true,
-				element: <HomePage />,
-			},
-			{
-				path: 'register',
-				element: <RegisterPage />,
-			},
-			{
-				path: 'login',
-				element: <LoginPage />,
-			}
-		],
-	},
+        path: '/cart',
+        element: <CartPage />,
+    },
+    {
+        path: '/delivery',
+        element: <DeliveryPage />,
+    },
+    {
+        path: '/order-success',
+        element: <OrderSuccessPage />,
+    },
+    {
+        path: '/orders/:orderId',
+        element: <OrderTrackingPage />,
+    },
+    {
+        path: '/orders/:orderId',
+        element: <OrderDetailPage />,
+    },
+    {
+        path: '/orders/:orderId/proofs',
+        element: <OrderProofPage />,
+    },
+    {
+        path: '/orders/:orderId/proofs-signature',
+        element: <OrderSignatureProofPage />,
+    },
+
+    {
+        path: '/orders/:orderId/return',
+        element: <OrderReturnPage />,
+    },
+    {
+        path: '/orders',
+        element: <OrderListPage />,
+    },
+    {
+        path: '/orders-history',
+        element: <OrderHistoryPage />,
+    },
+    {
+        path: '/',
+        children: [
+            {
+                index: true,
+                element: <HomePage />,
+            },
+            {
+                path: 'register',
+                element: <RegisterPage />,
+            },
+            {
+                path: 'login',
+                element: <LoginPage />,
+            },
+            {
+                path: '/about',
+                element: <AboutPage />,
+            },
+        ],
+    },
 ];
 
 const routes: RouteObject[] = [

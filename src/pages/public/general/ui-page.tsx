@@ -1,16 +1,16 @@
-import VapoHeader from '../components/organisms/vapo-header';
-import VapoFooter from '../components/organisms/vapo-footer';
-import CategoryIcon from '../components/atoms/category-icon';
-import ProductCard from '../components/molecules/product-card';
-import CartItem from '../components/molecules/cart-item';
-import StoreCard from '../components/molecules/store-card';
-import { Input } from '../shared/components/ui/input';
+import VapoHeader from '@/components/organisms/vapo-header';
+import VapoFooter from '@/components/organisms/vapo-footer';
+import CategoryIcon from '@/components/atoms/category-icon';
+import ProductCard from '@/components/molecules/product-card';
+import CartItem from '@/components/molecules/cart-item';
+import StoreCard from '@/components/molecules/store-card';
+import { Input } from '@/shared/components/ui/input';
 import { Info, SearchIcon } from 'lucide-react';
-import { RadioGroup, RadioGroupItem } from '../shared/components/ui/radio-group';
-import { Label } from '../shared/components/ui/label';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../shared/components/ui/select';
-import { Switch } from '../shared/components/ui/switch';
-import { Button } from '../shared/components/ui/button';
+import { RadioGroup, RadioGroupItem } from '@/shared/components/ui/radio-group';
+import { Label } from '@/shared/components/ui/label';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/shared/components/ui/select';
+import { Switch } from '@/shared/components/ui/switch';
+import { Button } from '@/shared/components/ui/button';
 export function UiPage() {
     return (
         <>
