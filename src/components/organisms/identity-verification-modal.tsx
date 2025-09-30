@@ -106,7 +106,7 @@ export default function IdentityVerificationModal({
     <ResponsiveModal open={open} maxWidth="md">
       <div className="px-6 py-4">
         <div className="flex flex-col items-center">
-          <img src="/logo/vapo-logo-2.png" alt="VapoStore Logo" className="my-4" />
+          <img src="/logo/vapo-logo-2.png" width={240} alt="VapoStore Logo" className="my-4" />
           
           <div className="flex items-center gap-2 mb-4">
             <IdCard className="text-vapo-purple-primary w-6 h-6" />
