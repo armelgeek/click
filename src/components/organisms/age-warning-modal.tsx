@@ -11,7 +11,7 @@ export default function AgeWarningModal({ open, onAccept, onQuit }: AgeWarningMo
     return (
         <ResponsiveModal open={open} maxWidth="md">
             <div className="px-6 py-4 flex flex-col items-center">
-                <img src="/logo/vapo-logo-2.png" alt="VapoStore Logo" className="my-4" />
+                <img src="/logo/vapo-logo-2.png"  width={200} alt="VapoStore Logo" className="my-4" />
                 <div className="flex items-center gap-2 mb-2">
                     <span className="text-vapo-purple-primary text-3xl">&#9432;</span>
                     <span className="text-vapo-purple-primary text-xl font-semibold">AVERTISSEMENT</span>

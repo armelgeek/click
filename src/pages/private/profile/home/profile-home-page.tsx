@@ -12,6 +12,7 @@ import 'react-phone-number-input/style.css';
 import { useProfile } from '@/app/profile/hooks/use-profile';
 import { usePasswordChange } from '@/app/profile/hooks/use-password-change';
 import { useAppSettings } from '@/app/profile/hooks/use-app-settings';
+import { useGeolocation } from '@/app/location';
 import {
     profileUpdateSchema,
     passwordChangeSchema,
@@ -23,7 +24,8 @@ export default function ProfileHomePage() {
     const { user, isLoading, updateProfile, isUpdating } = useProfile();
     const { changePassword, isChanging, canChangePassword } = usePasswordChange();
     const { settings, updateNotifications, updateLocation, isSaving } = useAppSettings();
-
+    const { requestPermission, isPermissionGranted, isPermissionDenied, isSupported } = useGeolocation();
+  
     const [toast, setToast] = useState<{ open: boolean; message: string; type: 'success' | 'error' }>({
         open: false,
         message: '',
@@ -106,8 +108,63 @@ export default function ProfileHomePage() {
     };
 
     const handleLocationToggle = async (enabled: boolean) => {
+        if (enabled) {
+            if (!isSupported) {
+                setToast({ 
+                    open: true, 
+                    message: 'La géolocalisation n\'est pas supportée par votre navigateur', 
+                    type: 'error' 
+                });
+                await updateLocation(false);
+                return;
+            }
+
+            if (isPermissionDenied) {
+                setToast({ 
+                    open: true, 
+                    message: 'Veuillez autoriser la géolocalisation dans les paramètres de votre navigateur', 
+                    type: 'error' 
+                });
+                await updateLocation(false);
+                return;
+            }
+
+            if (!isPermissionGranted) {
+                // Demander la permission de géolocalisation
+                try {
+                    await requestPermission();
+                    // Vérifier si la permission a été accordée après la demande
+                    if (isPermissionDenied) {
+                        setToast({ 
+                            open: true, 
+                            message: 'La géolocalisation doit être autorisée pour activer cette fonctionnalité', 
+                            type: 'error' 
+                        });
+                        await updateLocation(false);
+                        return;
+                    }
+                } catch (error) {
+                    setToast({ 
+                        open: true, 
+                        message: 'Erreur lors de la demande d\'autorisation de géolocalisation', 
+                        type: 'error' 
+                    });
+                    await updateLocation(false);
+                    return;
+                }
+            }
+        }
+
+        // Si on arrive ici, soit on désactive la localisation, soit la permission est accordée
         try {
-            await updateLocation(enabled);
+            await updateLocation(enabled && isPermissionGranted);
+            setToast({ 
+                open: true, 
+                message: enabled && isPermissionGranted
+                    ? 'Localisation activée avec succès' 
+                    : 'Localisation désactivée ou refusée', 
+                type: 'success' 
+            });
         } catch (error) {
             setToast({ open: true, message: 'Erreur lors de la mise à jour de la localisation', type: 'error' });
         }
@@ -290,7 +347,7 @@ export default function ProfileHomePage() {
                         <Switch
                             checked={settings.location}
                             onCheckedChange={handleLocationToggle}
-                            disabled={isSaving}
+                            disabled={isSaving || isPermissionDenied || !isSupported}
                         />
                     </div>
                      <div className="flex items-center justify-between">
