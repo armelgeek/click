@@ -15,6 +15,9 @@
 @font-face {
   font-family: 'Inter';
   src: url('/fonts/Inter.woff2') format('woff2');
+  font-weight: normal;
+  font-style: normal;
+  font-display: swap;
 }
 @font-face {
   font-family: 'Orbitron';
@@ -27,7 +30,6 @@ body {
   background-color: #F2F2F6;
   margin: 0;
   padding: 0;
-  font-family: 'Inter', sans-serif;
 }
 
 /* PWA Mobile-first responsive adjustments */
@@ -167,7 +169,7 @@ body {
   }
     body {
       @apply bg-background text-foreground;
-      font-family: 'Space Grotesk', ui-sans-serif, system-ui, sans-serif;
+      font-family: 'Inter', 'Space Grotesk', ui-sans-serif, system-ui, sans-serif;
     }
 }
 

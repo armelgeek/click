@@ -55,11 +55,17 @@ export default function RegisterForm() {
                 password: data.password,
             });
             if (result?.data) {
-                success('Inscription réussie ! Vérification d\'identité requise');
                 setShowIdentityModal(true);
-            } else {
-                throw new Error('Erreur lors de l\'inscription');
+                success('Inscription réussie !');
+            }else{
+                if(result?.error){
+                    console.log('Error from signUp:', result.error);
+                    if(result.error.code == "USER_ALREADY_EXISTS_USE_ANOTHER_EMAIL"){
+                        showErrorToast("Cette adresse email est déjà utilisée");
+                    }
+                }
             }
+
         } catch (e) {
             const error = e as { message?: string; code?: string };
             let errorMessage = 'Erreur lors de l\'inscription';
@@ -79,15 +85,12 @@ export default function RegisterForm() {
                 }
             }
             showErrorToast(errorMessage);
-            setError('email', { message: errorMessage });
         } finally {
             setLoading(false);
         }
     };
 
-    // Bloque la navigation tant que le modal est ouvert
-    // (utile si un effet ou un composant parent tente de naviguer)
-    // On pourrait aussi utiliser un useEffect pour empêcher la navigation
+
     const handleVerificationSuccess = () => {
         setShowIdentityModal(false);
         success('Inscription et vérification d\'identité complétées avec succès !');
