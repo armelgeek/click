@@ -12,6 +12,7 @@ import { shopRoutes } from "./shop-routes";
 import { productRoutes } from "./product-routes";
 import { HomePage } from "@/pages/public/home/home-page";
 import { RegisterPage } from "@/pages/public/auth/register-page";
+import IdentityVerificationPage from "@/pages/public/auth/identity-verification-page";
 import { LoginPage } from "@/pages/public/auth/login-page";
 import CartPage from '@/pages/public/general/cart-page';
 import DeliveryPage from '@/pages/public/general/delivery-page';
@@ -94,6 +95,10 @@ const publicRoutes: RouteObject[] = [
             {
                 path: 'register',
                 element: <RegisterPage />,
+            },
+            {
+                path: 'identity-verification',
+                element: <IdentityVerificationPage />,
             },
             {
                 path: 'login',

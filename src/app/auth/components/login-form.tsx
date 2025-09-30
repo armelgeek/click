@@ -45,6 +45,7 @@ export default function LoginForm() {
                 throw new Error('Erreur lors de la connexion');
             }
             
+            
         } catch (e) {
             const error = e as { message?: string; code?: string };
             let errorMessage = 'Erreur lors de la connexion';

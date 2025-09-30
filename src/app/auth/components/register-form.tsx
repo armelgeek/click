@@ -55,8 +55,8 @@ export default function RegisterForm() {
                 password: data.password,
             });
             if (result?.data) {
-                setShowIdentityModal(true);
                 success('Inscription réussie !');
+                navigate('/identity-verification');
             }else{
                 if(result?.error){
                     console.log('Error from signUp:', result.error);

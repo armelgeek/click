@@ -8,6 +8,7 @@ import { Link } from 'react-router';
 
 export function RegisterPage() {
     const { loading, signInWithProvider: handleSocial } = useSocialAuth();
+
     return (
         <div className="min-h-screen flex py-12 flex-col items-center justify-center bg-white">
             <ResponsiveContainer maxWidth="mobile" centerOnDesktop>
