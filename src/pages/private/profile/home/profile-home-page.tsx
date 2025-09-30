@@ -19,18 +19,18 @@ import {
     ProfileUpdateFormValues,
     PasswordChangeFormValues
 } from '@/app/profile/types/profile.schema';
-
 export default function ProfileHomePage() {
     const { user, isLoading, updateProfile, isUpdating } = useProfile();
     const { changePassword, isChanging, canChangePassword } = usePasswordChange();
     const { settings, updateNotifications, updateLocation, isSaving } = useAppSettings();
     const { requestPermission, isPermissionGranted, isPermissionDenied, isSupported } = useGeolocation();
-  
+
     const [toast, setToast] = useState<{ open: boolean; message: string; type: 'success' | 'error' }>({
         open: false,
         message: '',
         type: 'success'
     });
+    const [showLocationInfoModal, setShowLocationInfoModal] = useState(false);
 
     const {
         control: profileControl,
@@ -108,67 +108,30 @@ export default function ProfileHomePage() {
     };
 
     const handleLocationToggle = async (enabled: boolean) => {
-        if (enabled) {
-            if (!isSupported) {
-                setToast({ 
-                    open: true, 
-                    message: 'La géolocalisation n\'est pas supportée par votre navigateur', 
-                    type: 'error' 
-                });
-                await updateLocation(false);
-                return;
-            }
-
-            if (isPermissionDenied) {
-                setToast({ 
-                    open: true, 
-                    message: 'Veuillez autoriser la géolocalisation dans les paramètres de votre navigateur', 
-                    type: 'error' 
-                });
-                await updateLocation(false);
-                return;
-            }
-
-            if (!isPermissionGranted) {
-                // Demander la permission de géolocalisation
-                try {
-                    await requestPermission();
-                    // Vérifier si la permission a été accordée après la demande
-                    if (isPermissionDenied) {
-                        setToast({ 
-                            open: true, 
-                            message: 'La géolocalisation doit être autorisée pour activer cette fonctionnalité', 
-                            type: 'error' 
-                        });
-                        await updateLocation(false);
-                        return;
-                    }
-                } catch (error) {
-                    setToast({ 
-                        open: true, 
-                        message: 'Erreur lors de la demande d\'autorisation de géolocalisation', 
-                        type: 'error' 
-                    });
+            if (enabled) {
+                if (!isSupported) {
+                    setToast({ open: true, message: "La géolocalisation n'est pas supportée par votre navigateur", type: 'error' });
                     await updateLocation(false);
                     return;
                 }
+                try {
+                    await requestPermission();
+                    if (isPermissionGranted) {
+                        await updateLocation(true);
+                        setToast({ open: true, message: "Localisation activée avec succès", type: 'success' });
+                    } else {
+                        setToast({ open: true, message: "Permission de localisation refusée", type: 'error' });
+                        await updateLocation(false);
+                    }
+                } catch (error) {
+                    setToast({ open: true, message: "Erreur lors de la demande de localisation", type: 'error' });
+                    await updateLocation(false);
+                }
+            } else {
+                await updateLocation(false);
+                setShowLocationInfoModal(true);
             }
-        }
-
-        // Si on arrive ici, soit on désactive la localisation, soit la permission est accordée
-        try {
-            await updateLocation(enabled && isPermissionGranted);
-            setToast({ 
-                open: true, 
-                message: enabled && isPermissionGranted
-                    ? 'Localisation activée avec succès' 
-                    : 'Localisation désactivée ou refusée', 
-                type: 'success' 
-            });
-        } catch (error) {
-            setToast({ open: true, message: 'Erreur lors de la mise à jour de la localisation', type: 'error' });
-        }
-    };
+        };
 
     if (isLoading) {
         return (
@@ -180,6 +143,15 @@ export default function ProfileHomePage() {
 
     return (
         <div className="min-h-screen px-4 py-8 flex flex-col gap-10">
+            {showLocationInfoModal && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
+                    <div className="bg-white rounded-lg shadow-lg p-6 max-w-sm w-full text-center">
+                        <h2 className="text-lg font-bold mb-2 text-vapo-purple-primary">Désactivation complète de la localisation</h2>
+                        <p className="mb-4 text-gray-700">La localisation est désactivée dans l'application.<br/>Pour retirer complètement la permission, allez dans les paramètres de votre navigateur (icône cadenas ou globe à côté de l'URL) et révoquez l'accès à la localisation pour ce site.</p>
+                        <button className="mt-2 px-4 py-2 bg-vapo-purple-primary text-white rounded" onClick={() => setShowLocationInfoModal(false)}>J'ai compris</button>
+                    </div>
+                </div>
+            )}
             {toast.open && (
                 <div className={`fixed top-4 right-4 p-4 rounded-md ${toast.type === 'success' ? 'bg-green-600' : 'bg-red-600'} text-white z-50`}>
                     {toast.message}
@@ -363,6 +335,23 @@ export default function ProfileHomePage() {
                     </div>
                 </div>
             </div>
+              {showLocationInfoModal && (
+            <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
+                <div className="bg-white rounded-lg shadow-lg p-6 max-w-md w-full">
+                    <h2 className="text-xl font-bold mb-2 text-vapo-purple-primary">Comment retirer la permission de localisation ?</h2>
+                    <p className="mb-4 text-gray-700">
+                        Pour désactiver la localisation, veuillez aller dans les paramètres de votre navigateur (icône cadenas ou globe à gauche de l’URL), puis retirer l’autorisation de localisation pour ce site.
+                    </p>
+                    <button
+                        className="bg-vapo-purple-primary text-white px-4 py-2 rounded hover:bg-vapo-purple-dark w-full"
+                        onClick={() => setShowLocationInfoModal(false)}
+                    >
+                        J'ai compris
+                    </button>
+                </div>
+            </div>
+        )}
         </div>
+      
     );
 }
