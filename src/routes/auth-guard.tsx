@@ -6,7 +6,6 @@ export function AuthGuard() {
     const { data: session, isPending } = useSession();
     const location = useLocation();
     
-    // Show loading while checking session
     if (isPending) {
         return (
             <div className="min-h-screen flex items-center justify-center">
@@ -15,8 +14,7 @@ export function AuthGuard() {
         );
     }
     
-    // If user is authenticated and trying to access auth pages, redirect to profile
-    const authPages = ['/login', '/register'];
+    const authPages = ['/login'];
     if (session && authPages.includes(location.pathname)) {
         return <Navigate to="/profile/home" replace />;
     }

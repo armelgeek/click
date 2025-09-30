@@ -1,5 +1,6 @@
 
 import { useSession, signOut } from '@/shared/config/auth.config';
+import { useToast } from '@/hooks/use-toast';
 import { useNavigate } from 'react-router';
 import { Button } from '@/shared/components/ui/button';
 
@@ -7,10 +8,10 @@ interface SideMenuProps {
   open: boolean;
   onClose: () => void;
 }
-
 export default function SideMenu({ open, onClose }: SideMenuProps) {
   const { data: session } = useSession();
   const navigate = useNavigate();
+  const { success } = useToast();
 
   if (!open) return null;
 
@@ -26,7 +27,7 @@ export default function SideMenu({ open, onClose }: SideMenuProps) {
           className="relative bg-neutral-900 shadow-2xl p-8 flex flex-col items-center w-full pointer-events-auto border border-gray-700 rounded-xl"
           onClick={e => e.stopPropagation()}
         >
-         
+
           <button
             className="absolute top-3 right-3 text-white text-2xl hover:text-vapo-purple-primary transition-colors"
             onClick={onClose}
@@ -43,22 +44,22 @@ export default function SideMenu({ open, onClose }: SideMenuProps) {
                 <button type="button" className="text-left text-white hover:text-vapo-purple-primary transition-colors" onClick={() => { navigate('/settings'); onClose(); }}>Mes adresses</button>
                 <button type="button" className="text-left text-white hover:text-vapo-purple-primary transition-colors" onClick={() => { navigate('/about'); onClose(); }}>A propos</button>
               </nav>
-              <Button variant="vapo" className="w-full h-12 mt-2 text-base" onClick={() => { signOut(); onClose(); }}>
+              <Button variant="vapo" className="w-full h-12 mt-2 text-base" onClick={() => { signOut(); success('Déconnexion réussie !'); onClose(); }}>
                 Se déconnecter
               </Button>
             </>
           ) : (
             <div className="flex flex-col gap-4 w-full">
-                 <img
-                    src="/icons/vapo-logo-white.png"
-                    alt="VapoStore Logo"
-                    className="mb-6"
-                     width={240}
-                />
-              <Button  onClick={() => { navigate('/login'); onClose(); }} variant="secondary" className="w-full h-12 text-lg">
+              <img
+                src="/icons/vapo-logo-white.png"
+                alt="VapoStore Logo"
+                className="mb-6"
+                width={240}
+              />
+              <Button onClick={() => { navigate('/login'); onClose(); }} variant="secondary" className="w-full h-12 text-lg">
                 Se connecter
               </Button>
-              <Button   onClick={() => { navigate('/register'); onClose(); }} variant="vapo" className="w-full h-12 text-lg border-white text-white">
+              <Button onClick={() => { navigate('/register'); onClose(); }} variant="vapo" className="w-full h-12 text-lg border-white text-white">
                 Créer un compte
               </Button>
             </div>

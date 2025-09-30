@@ -46,7 +46,6 @@ export default function RegisterForm() {
     const onSubmit = async (data: RegisterFormValues) => {
         try {
             setLoading(true);
-            
             const result = await signUp.email({
                 name: data.name,
                 email: data.email,
@@ -55,18 +54,15 @@ export default function RegisterForm() {
                 role: CUSTOMER_ROLE,
                 password: data.password,
             });
-            
             if (result?.data) {
                 success('Inscription réussie ! Vérification d\'identité requise');
                 setShowIdentityModal(true);
             } else {
                 throw new Error('Erreur lors de l\'inscription');
             }
-            
         } catch (e) {
             const error = e as { message?: string; code?: string };
             let errorMessage = 'Erreur lors de l\'inscription';
-            
             if (error.message) {
                 if (error.message.includes('Failed to fetch') || 
                     error.code === 'NETWORK_ERROR') {
@@ -82,7 +78,6 @@ export default function RegisterForm() {
                     errorMessage = error.message;
                 }
             }
-            
             showErrorToast(errorMessage);
             setError('email', { message: errorMessage });
         } finally {
@@ -90,6 +85,9 @@ export default function RegisterForm() {
         }
     };
 
+    // Bloque la navigation tant que le modal est ouvert
+    // (utile si un effet ou un composant parent tente de naviguer)
+    // On pourrait aussi utiliser un useEffect pour empêcher la navigation
     const handleVerificationSuccess = () => {
         setShowIdentityModal(false);
         success('Inscription et vérification d\'identité complétées avec succès !');
