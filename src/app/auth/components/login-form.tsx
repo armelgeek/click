@@ -37,7 +37,7 @@ export default function LoginForm() {
             });
             
             if (result?.data) {
-                success('Connexion réussie ! Redirection en cours...');
+                success('Connexion réussie !');
                 setTimeout(() => {
                     navigate('/profile/home');
                 }, 1000);
@@ -69,7 +69,6 @@ export default function LoginForm() {
             }
             
             showErrorToast(errorMessage);
-            setError('email', { message: errorMessage });
         } finally {
             setLoading(false);
         }
