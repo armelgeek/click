@@ -2,11 +2,12 @@ import { Input } from '@/shared/components/ui/input';
 import { SearchIcon } from 'lucide-react';
 import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from '@/shared/components/ui/select';
 import StoreCard from '@/components/molecules/store-card';
+import { useNavigate } from 'react-router';
 import { Label } from '@/shared/components/ui/label';
 import { useShops } from '@/app/catalog/hooks/use-catalog';
-
 export function HomePage() {
     const { shops, loading, error } = useShops();
+    const navigate = useNavigate();
 
     const nearbyStores = shops.filter(shop => shop.isNearby);
     const otherStores = shops.filter(shop => !shop.isNearby);
@@ -46,7 +47,13 @@ export function HomePage() {
                     <div className="col-span-3 text-center text-gray-400 py-8">Aucun magasin à proximité pour le moment.</div>
                 ) : (
                     nearbyStores.map((store) => (
-                        <StoreCard key={store.id} name={store.name} image={`/icons/store.svg`} />
+                        <button
+                            key={store.id}
+                            className="focus:outline-none"
+                            onClick={() => navigate(`/products?shop=${store.id}`)}
+                        >
+                            <StoreCard name={store.name} image={`/icons/store.svg`} />
+                        </button>
                     ))
                 )}
             </div>
@@ -83,7 +90,13 @@ export function HomePage() {
                     <div className="col-span-3 text-center text-gray-400 py-8">Aucun autre magasin disponible.</div>
                 ) : (
                     otherStores.map((store) => (
-                        <StoreCard key={store.id} name={store.name} image={`/icons/store.svg`} />
+                        <button
+                            key={store.id}
+                            className="focus:outline-none"
+                            onClick={() => navigate(`/products?shop=${store.id}`)}
+                        >
+                            <StoreCard name={store.name} image={`/icons/store.svg`} />
+                        </button>
                     ))
                 )}
             </div>
