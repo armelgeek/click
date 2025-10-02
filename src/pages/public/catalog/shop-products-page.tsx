@@ -71,7 +71,7 @@ export default function ShopProductsPage() {
                 <CategoryIcon label={cat.name} />
               </div>
             ))}
-          </div>**/
+          </div>**/}
           
           <div className="flex items-center justify-between mt-4 py-4">
             <Typography variant="body" className="font-semibold">

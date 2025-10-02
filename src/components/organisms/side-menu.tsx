@@ -17,13 +17,12 @@ export default function SideMenu({ open, onClose }: SideMenuProps) {
   if (!open) return null;
 
   const isActivePath = (path: string) => location.pathname === path;
-
   const menuItems = [
     { path: '/profile/home', label: 'Mon compte' },
-    { path: '/products', label: 'Les boutiques' },
-    { path: '/orders/history', label: 'Mes commandes' },
-    { path: '/settings', label: 'Mes adresses' },
-    { path: '/about', label: 'A propos' }
+    { path: '/shops', label: 'Boutiques' },
+    { path: '/orders/history', label: 'Commandes' },
+    { path: '/settings', label: 'Adresses' },
+    { path: '/about', label: 'À propos' }
   ];
 
   return (
@@ -33,13 +32,13 @@ export default function SideMenu({ open, onClose }: SideMenuProps) {
         onClick={onClose}
         aria-label="Fermer le menu"
       />
-      <div className="fixed left-1/2 top-1/5 z-50 -translate-x-1/2 flex justify-center pointer-events-none">
+      <div className="fixed left-1/2 top-1/5 z-50 -translate-x-1/2 flex justify-center pointer-events-none w-full">
         <div
-          className="relative bg-neutral-900 shadow-2xl p-8 px-12 flex flex-col items-center w-full pointer-events-auto border border-gray-700 rounded-xl"
+          className="relative bg-neutral-900 shadow-xl p-8 px-6 flex flex-col items-center w-full max-w-[400px] md:max-w-[400px] pointer-events-auto border border-gray-700 rounded-xl"
           onClick={e => e.stopPropagation()}
         >
           <button
-            className="absolute top-3 right-3 text-white text-2xl hover:text-vapo-purple-primary transition-colors"
+            className="absolute top-3 right-3 text-white text-2xl hover:text-vapo-purple-primary"
             onClick={onClose}
             aria-label="Fermer le menu"
           >
@@ -48,14 +47,14 @@ export default function SideMenu({ open, onClose }: SideMenuProps) {
           
           {session ? (
             <>
-              <nav className="flex flex-col items-center gap-6 text-white text-xl font-light text-center mb-8">
+              <nav className="flex flex-col mt-3 items-center gap-3 text-white  font-light text-center mb-8 w-full">
                 {menuItems.map(item => (
                   <button
                     key={item.path}
                     type="button"
-                    className={`relative text-left transition-all px-4 py-2 rounded-lg min-w-[200px] ${
+                    className={`w-full text-left px-5 py-2 rounded-lg  transition-colors ${
                       isActivePath(item.path)
-                        ? 'bg-vapo-purple-primary text-white font-semibold shadow-lg'
+                        ? 'bg-vapo-purple-primary/30 text-white font-semibold shadow'
                         : 'text-white hover:text-vapo-purple-primary hover:bg-neutral-800'
                     }`}
                     onClick={() => {
@@ -63,33 +62,29 @@ export default function SideMenu({ open, onClose }: SideMenuProps) {
                       onClose();
                     }}
                   >
-                   
-                    <span className={isActivePath(item.path) ? 'ml-3' : ''}>
-                      {item.label}
-                    </span>
+                    {item.label}
                   </button>
                 ))}
               </nav>
-              
               <Button
                 variant="vapo"
-                className="w-full h-12 mt-2 text-base"
+                className="w-full h-10 mt-2 text-base"
                 onClick={() => {
                   signOut();
                   success('Déconnexion réussie !');
                   onClose();
                 }}
               >
-                Se déconnecter
+                Déconnexion
               </Button>
             </>
           ) : (
-            <div className="flex flex-col gap-4 w-full">
+            <div className="flex flex-col gap-3 w-full">
               <img
                 src="/icons/vapo-logo-white.png"
                 alt="VapoStore Logo"
-                className="mb-6"
-                width={240}
+                className="mb-4"
+                width={180}
               />
               <Button
                 onClick={() => {
@@ -97,9 +92,9 @@ export default function SideMenu({ open, onClose }: SideMenuProps) {
                   onClose();
                 }}
                 variant="secondary"
-                className="w-full h-12 text-lg"
+                className="w-full h-10 text-base"
               >
-                Se connecter
+                Connexion
               </Button>
               <Button
                 onClick={() => {
@@ -107,9 +102,9 @@ export default function SideMenu({ open, onClose }: SideMenuProps) {
                   onClose();
                 }}
                 variant="vapo"
-                className="w-full h-12 text-lg border-white text-white"
+                className="w-full h-10 border-white text-white text-base"
               >
-                Créer un compte
+                Inscription
               </Button>
             </div>
           )}

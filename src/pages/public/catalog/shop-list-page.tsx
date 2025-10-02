@@ -60,11 +60,15 @@ export default function ShopListPage() {
         Les magasins Vapostore près de vous!
       </Label>
       <div className="flex gap-4 overflow-x-auto pb-2">
-        {nearbyStores.map(store => (
-          <div key={store.id} className="min-w-[180px]" onClick={() => navigate(`/shop/${store.id}`)} style={{cursor:'pointer'}}>
-            <StoreCard name={store.name} />
-          </div>
-        ))}
+        {nearbyStores.length === 0 ? (
+          <div className="text-gray-400 text-center w-full py-8">Aucun magasin à proximité pour le moment.</div>
+        ) : (
+          nearbyStores.map(store => (
+            <div key={store.id} className="min-w-[180px]" onClick={() => navigate(`/shop/${store.id}`)} style={{cursor:'pointer'}}>
+              <StoreCard name={store.name} />
+            </div>
+          ))
+        )}
       </div>
       <Label icon={<MapPin className="text-vapo-purple-primary w-5 h-5" />} className="text-vapo-purple-primary text-base font-semibold mt-4 mb-2">
         Autres magasins
@@ -89,11 +93,15 @@ export default function ShopListPage() {
         </Select>
       </div>
       <div className="grid grid-cols-3 gap-4">
-        {otherStores.map(store => (
-          <div key={store.id} onClick={() => navigate(`/shop/${store.id}`)} style={{cursor:'pointer'}}>
-            <StoreCard name={store.name} />
-          </div>
-        ))}
+        {otherStores.length === 0 ? (
+          <div className="col-span-3 text-gray-400 text-center py-8">Aucun autre magasin disponible.</div>
+        ) : (
+          otherStores.map(store => (
+            <div key={store.id} onClick={() => navigate(`/shop/${store.id}`)} style={{cursor:'pointer'}}>
+              <StoreCard name={store.name} />
+            </div>
+          ))
+        )}
       </div>
     </div>
   );
