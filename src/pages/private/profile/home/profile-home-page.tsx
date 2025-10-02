@@ -322,6 +322,12 @@ export default function ProfileHomePage() {
                             disabled={isSaving || isPermissionDenied || !isSupported}
                         />
                     </div>
+                    {(isPermissionDenied || !isSupported) && (
+                        <div className="text-xs text-red-500 mt-2 ml-7">
+                            La localisation est bloquée par votre navigateur. <br />
+                            Pour débloquer, allez dans les paramètres du navigateur (icône cadenas ou globe à côté de l’URL) et autorisez la localisation pour ce site.
+                        </div>
+                    )}
                      <div className="flex items-center justify-between">
                         <div className="flex items-center gap-2">
                             <Bell className="text-vapo-purple-primary w-5 h-5" />

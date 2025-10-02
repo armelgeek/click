@@ -114,14 +114,27 @@ export class CatalogAPI {
   ): Promise<LegacyProductsResponse> {
     await delay(250);
 
-   
+   const response = await apiClient.get(API_ENDPOINTS.stores.by(shopId, categoryId || ''));
+    if(response.data && Array.isArray(response.data.data)) {
+      return {
+        products: response.data.data.map((prod: Product) => ({
+          id: prod.id,
+          name: prod.name,
+          price: prod.priceTTC,
+          image: prod.image || '',
+          description: '',
+          shopId: prod.storeId,
+          categoryId: categoryId || '',
+        })),
+      };
+    }
     return {
       products: []
     };
   }
 
   static async getShopById(shopId: string): Promise<Shop | null> {
-    await delay(150);
-    return mockShops.find(shop => shop.id === shopId) || null;
+    const response = await apiClient.get(API_ENDPOINTS.stores.detail(shopId));
+    return response.data || null;
   }
 }
