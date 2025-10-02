@@ -56,8 +56,8 @@ export default function ShopProductsPage() {
           </Button>
         </div>
         <div className="rounded-xl border border-vapo-purple-primary/10 shadow-sm mt-2 p-4 mx-3">
-          <Typography variant="body" className="font-semibold py-4">Catégories</Typography>
-          {/**<div className="flex justify-between my-4">
+          {/**<Typography variant="body" className="font-semibold py-4">Catégories</Typography>
+          <div className="flex justify-between my-4">
             {categories.map((cat) => (
               <div
                 key={cat.id}
