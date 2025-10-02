@@ -64,9 +64,14 @@ export default function ShopListPage() {
           <div className="text-gray-400 text-center w-full py-8">Aucun magasin à proximité pour le moment.</div>
         ) : (
           nearbyStores.map(store => (
-            <div key={store.id} className="min-w-[180px]" onClick={() => navigate(`/shop/${store.id}`)} style={{cursor:'pointer'}}>
+            <button
+              key={store.id}
+              className="min-w-[180px] focus:outline-none"
+              style={{cursor:'pointer'}}
+              onClick={() => navigate(`/shop/${store.id}`)}
+            >
               <StoreCard name={store.name} />
-            </div>
+            </button>
           ))
         )}
       </div>
@@ -97,9 +102,14 @@ export default function ShopListPage() {
           <div className="col-span-3 text-gray-400 text-center py-8">Aucun autre magasin disponible.</div>
         ) : (
           otherStores.map(store => (
-            <div key={store.id} onClick={() => navigate(`/shop/${store.id}`)} style={{cursor:'pointer'}}>
+            <button
+              key={store.id}
+              className="focus:outline-none"
+              style={{cursor:'pointer'}}
+              onClick={() => navigate(`/shop/${store.id}`)}
+            >
               <StoreCard name={store.name} />
-            </div>
+            </button>
           ))
         )}
       </div>
