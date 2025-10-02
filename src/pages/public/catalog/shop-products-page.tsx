@@ -57,7 +57,7 @@ export default function ShopProductsPage() {
         </div>
         <div className="rounded-xl border border-vapo-purple-primary/10 shadow-sm mt-2 p-4 mx-3">
           <Typography variant="body" className="font-semibold py-4">Catégories</Typography>
-          <div className="flex justify-between my-4">
+          {/**<div className="flex justify-between my-4">
             {categories.map((cat) => (
               <div
                 key={cat.id}
@@ -71,7 +71,7 @@ export default function ShopProductsPage() {
                 <CategoryIcon label={cat.name} />
               </div>
             ))}
-          </div>
+          </div>**/
           
           <div className="flex items-center justify-between mt-4 py-4">
             <Typography variant="body" className="font-semibold">

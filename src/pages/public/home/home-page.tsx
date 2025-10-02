@@ -50,9 +50,9 @@ export function HomePage() {
                         <button
                             key={store.id}
                             className="focus:outline-none"
-                            onClick={() => navigate(`/products?shop=${store.id}`)}
+                            onClick={() => navigate(`/shop/${store.id}`)}
                         >
-                            <StoreCard name={store.name} image={`/icons/store.svg`} />
+                            <StoreCard name={store.name} image={store.image || `/icons/store.svg`} />
                         </button>
                     ))
                 )}
@@ -93,9 +93,9 @@ export function HomePage() {
                         <button
                             key={store.id}
                             className="focus:outline-none"
-                            onClick={() => navigate(`/products?shop=${store.id}`)}
+                            onClick={() => navigate(`/shop/${store.id}`)}
                         >
-                            <StoreCard name={store.name} image={`/icons/store.svg`} />
+                            <StoreCard name={store.name} image={store.image || `/icons/store.svg`} />
                         </button>
                     ))
                 )}
