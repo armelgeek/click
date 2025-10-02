@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { CatalogAPI } from '../api/catalog-api';
-import { Shop, Category, Product } from '../types';
+import { Shop, Category, LegacyProduct } from '../types';
 
 export function useShops() {
   const [shops, setShops] = useState<Shop[]>([]);
@@ -83,7 +83,7 @@ export function useShopCategories(shopId?: string) {
 }
 
 export function useShopProducts(shopId?: string, categoryId?: string) {
-  const [products, setProducts] = useState<Product[]>([]);
+  const [products, setProducts] = useState<LegacyProduct[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 

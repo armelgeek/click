@@ -1,3 +1,50 @@
+export interface Store {
+  id: string;
+  name: string;
+  logoUrl?: string;
+  address: string;
+  latitude?: number;
+  longitude?: number;
+  phoneNumber?: string;
+  openingHours?: {
+    [day: string]: string;
+  };
+  status: "ACTIVATED" | "DISABLED";
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface Product {
+  id: string;
+  storeId: string;
+  name: string;
+  category: string;
+  image?: string;
+  priceHT: number;
+  priceTTC: number;
+  vat: string;
+  status: string;
+  quantity: number;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface PaginationMeta {
+  page: number;
+  limit: number;
+  total: number;
+  totalPages: number;
+}
+
+export interface PaginatedResponse<T> {
+  data: T[];
+  meta: PaginationMeta;
+}
+
+export type StoresResponse = PaginatedResponse<Store>;
+export type ProductsResponse = PaginatedResponse<Product>;
+
+// Legacy types for backward compatibility with existing UI
 export interface Shop {
   id: string;
   name: string;
@@ -13,7 +60,7 @@ export interface Category {
   shopId: string;
 }
 
-export interface Product {
+export interface LegacyProduct {
   id: string;
   name: string;
   price: number;
@@ -31,6 +78,6 @@ export interface CategoriesResponse {
   categories: Category[];
 }
 
-export interface ProductsResponse {
-  products: Product[];
+export interface LegacyProductsResponse {
+  products: LegacyProduct[];
 }

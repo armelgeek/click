@@ -2,10 +2,31 @@ import { Input } from '@/shared/components/ui/input';
 import { SearchIcon } from 'lucide-react';
 import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from '@/shared/components/ui/select';
 import StoreCard from '@/components/molecules/store-card';
-
 import { Label } from '@/shared/components/ui/label';
+import { useShops } from '@/app/catalog/hooks/use-catalog';
 
 export function HomePage() {
+    const { shops, loading, error } = useShops();
+
+    const nearbyStores = shops.filter(shop => shop.isNearby);
+    const otherStores = shops.filter(shop => !shop.isNearby);
+
+    if (loading) {
+        return (
+            <div className="min-h-screen flex items-center justify-center">
+                <div className="text-vapo-purple-primary">Chargement des magasins...</div>
+            </div>
+        );
+    }
+
+    if (error) {
+        return (
+            <div className="min-h-screen flex items-center justify-center">
+                <div className="text-red-500">Erreur: {error}</div>
+            </div>
+        );
+    }
+
     return (
         <div className="min-h-screen text-white px-4 py-4 flex flex-col gap-6 font-inter">
             <Input
@@ -21,9 +42,13 @@ export function HomePage() {
             </div>
 
             <div className="grid grid-cols-3 gap-4">
-                <StoreCard name="Gare du Nord" image={`/icons/store.svg`} />
-                <StoreCard name="Avranches" image={`/icons/store.svg`}  />
-                
+                {nearbyStores.length === 0 ? (
+                    <div className="col-span-3 text-center text-gray-400 py-8">Aucun magasin à proximité pour le moment.</div>
+                ) : (
+                    nearbyStores.map((store) => (
+                        <StoreCard key={store.id} name={store.name} image={`/icons/store.svg`} />
+                    ))
+                )}
             </div>
 
             <div className="flex items-center gap-2 mb-2 mt-4">
@@ -37,9 +62,9 @@ export function HomePage() {
                         <SelectValue placeholder="Rechercher par magasin" />
                     </SelectTrigger>
                     <SelectContent>
-                        <SelectItem value="gare">Gare du Nord</SelectItem>
-                        <SelectItem value="plaisance">Plaisance</SelectItem>
-                        <SelectItem value="lafayette">La Fayette</SelectItem>
+                        {otherStores.slice(0, 5).map((store) => (
+                            <SelectItem key={store.id} value={store.id}>{store.name}</SelectItem>
+                        ))}
                     </SelectContent>
                 </Select>
                 <Select>
@@ -54,9 +79,13 @@ export function HomePage() {
                 </Select>
             </div>
             <div className="grid grid-cols-3 gap-4">
-                {['Agneaux', 'Avranches', 'Dieppe', 'Casablanca', 'Bordeaux', 'Buxerolles', 'Pessac', 'Royan', 'Le Bouscat'].map((name) => (
-                    <StoreCard key={name} name={name}  image={`/icons/store.svg`} />
-                ))}
+                {otherStores.length === 0 ? (
+                    <div className="col-span-3 text-center text-gray-400 py-8">Aucun autre magasin disponible.</div>
+                ) : (
+                    otherStores.map((store) => (
+                        <StoreCard key={store.id} name={store.name} image={`/icons/store.svg`} />
+                    ))
+                )}
             </div>
         </div>
     );

@@ -1,4 +1,4 @@
-import { Shop, Category, Product } from '../types';
+import { Shop, Category, LegacyProduct } from '../types';
 
 export const mockShops: Shop[] = [
   { id: 'gare-du-nord', name: 'Gare du Nord', isNearby: true },
@@ -28,7 +28,7 @@ export const mockCategories: Category[] = [
   ])
 ];
 
-export const mockProducts: Product[] = [
+export const mockProducts: LegacyProduct[] = [
   {
     id: '1',
     name: 'Blue Devil By Avap 50ml',
