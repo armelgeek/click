@@ -4,7 +4,7 @@ interface ProductCardProps {
     subtitle?: string;
     className?: string;
 }
-
+export default function ProductCard({ image, title, subtitle, className = '' }: ProductCardProps) {
     return (
         <div className={`rounded-xl bg-gray-100 flex flex-col items-center flex-1 w-full min-h-[180px] max-h-[220px] ${className}`}>
             <div className="w-full flex items-center justify-center rounded-xl overflow-hidden bg-white min-h-[80px] max-h-[100px]">
