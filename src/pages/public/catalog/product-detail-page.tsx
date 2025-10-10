@@ -2,29 +2,23 @@ import { useState } from 'react';
 import { Label } from '@/shared/components/ui/label';
 import { Boxes, Minus, Plus } from 'lucide-react';
 import { Button } from '@/shared/components/ui/button';
-import ProductCard from '@/components/molecules/product-card';
-import { useNavigate } from 'react-router';
+import { useNavigate, useParams } from 'react-router';
 import { useCartMutations } from '@/app/cart';
-
-const product = {
-    id: 'prod-1',
-    name: 'Blue Devil By Avap 50ml',
-    price: 25.90,
-    image: "/icons/product.png",
-    description: 'Description du produit : Lorem ipsum dolor sit amet, consectetur adipiscing elit. Pellentesque ut malesuada orci. Quisque at turpis vel odio fermentum ultricies non sit amet eros. Vivamus vehicula dapibus arcu a cursus.'
-};
-
-const relatedProducts = Array.from({ length: 3 }).map((_, i) => ({
-    id: `prod-${i + 2}`,
-    name: 'Blue Devil By Avap 50ml',
-    price: 25.90,
-    image: "/icons/product.png"
-}));
+import { useProduct } from '@/app/catalog/hooks/use-catalog-api';
 
 export default function ProductDetailPage() {
+    const { id } = useParams();
+    const { product, loading, error } = useProduct(id);
     const [qty, setQty] = useState(1);
     const navigate = useNavigate();
     const { addToCart, isAddingToCart } = useCartMutations();
+
+    if (loading) {
+        return <div className="min-h-screen flex items-center justify-center text-vapo-purple-primary">Chargement du produit...</div>;
+    }
+    if (error || !product) {
+        return <div className="min-h-screen flex items-center justify-center text-red-500">Produit introuvable</div>;
+    }
 
     const handleAddToCart = () => {
         addToCart.mutate(
@@ -87,14 +81,6 @@ export default function ProductDetailPage() {
                     >
                         {isAddingToCart ? 'Ajout en cours...' : 'Ajouter au panier'}
                     </Button>
-                </div>
-            </div>
-            <div className="bg-white rounded-2xl p-4 mt-2">
-                <div className="text-base font-semibold mb-4">D’autres produits qui peuvent vous intéresser !</div>
-                <div className="flex gap-4">
-                    {relatedProducts.map(p => (
-                        <ProductCard key={p.id} image={p.image} title={p.name} subtitle={p.price.toFixed(2) + ' €'} />
-                    ))}
                 </div>
             </div>
         </div>

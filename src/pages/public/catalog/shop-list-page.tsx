@@ -1,5 +1,5 @@
 import { useNavigate } from 'react-router';
-import StoreCard from '@/components/molecules/store-card';
+import StoreCard from '@/components/icons/store-card';
 import { Label } from '@/shared/components/ui/label';
 import { Box, Gem, MapPin } from 'lucide-react';
 import { Input } from '@/shared/components/ui/input';

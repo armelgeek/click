@@ -1,7 +1,7 @@
 import { Input } from '@/shared/components/ui/input';
 import { SearchIcon } from 'lucide-react';
 import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from '@/shared/components/ui/select';
-import StoreCard from '@/components/molecules/store-card';
+import StoreCard from '@/components/icons/store-card';
 import { useNavigate } from 'react-router';
 import { Label } from '@/shared/components/ui/label';
 import { useShops } from '@/app/catalog/hooks/use-catalog';

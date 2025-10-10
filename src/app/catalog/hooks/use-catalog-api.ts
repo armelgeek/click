@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import { CatalogAPI, StoresQueryParams, ProductsQueryParams } from '../api/catalog-api';
-import { Store, Product, PaginationMeta } from '../types';
+import { Store, Product, PaginationMeta, LegacyProduct } from '../types';
 
 export function useStores(params: StoresQueryParams = {}) {
   const [stores, setStores] = useState<Store[]>([]);
@@ -140,7 +140,7 @@ export function useProducts(params: ProductsQueryParams = {}) {
 }
 
 export function useProduct(productId?: string) {
-  const [product, setProduct] = useState<Product | null>(null);
+  const [product, setProduct] = useState<LegacyProduct | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -159,8 +159,22 @@ export function useProduct(productId?: string) {
         setError(null);
         const productData = await CatalogAPI.getProductById(productId);
         if (mounted) {
-          setProduct(productData);
-        }
+          const api = productData as Product & { shopId?: string; shop_id?: string; categoryId?: string; category_id?: string };
+          const shopId: string =
+            api.shopId ?? api.storeId ?? api.shop_id ?? '';
+          const categoryId: string =
+            api.categoryId ?? api.category_id ?? '';
+
+          setProduct({
+            id: productData.id,
+            name: productData.name,
+            description: '',
+            price: productData.priceTTC,
+            image: productData.image ?? '',
+            shopId,
+            categoryId,
+          });
+         }
       } catch (err) {
         if (mounted) {
           setError(err instanceof Error ? err.message : 'Failed to fetch product');

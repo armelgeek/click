@@ -3,7 +3,7 @@ import VapoFooter from '@/components/organisms/vapo-footer';
 import CategoryIcon from '@/components/atoms/category-icon';
 import ProductCard from '@/components/molecules/product-card';
 import CartItem from '@/components/molecules/cart-item';
-import StoreCard from '@/components/molecules/store-card';
+import StoreCard from '@/components/icons/store-card';
 import { Input } from '@/shared/components/ui/input';
 import { Info, SearchIcon } from 'lucide-react';
 import { RadioGroup, RadioGroupItem } from '@/shared/components/ui/radio-group';
