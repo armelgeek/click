@@ -7,8 +7,8 @@ import { useCartMutations } from '@/app/cart';
 import { useProduct } from '@/app/catalog/hooks/use-catalog-api';
 
 export default function ProductDetailPage() {
-    const { id } = useParams();
-    const { product, loading, error } = useProduct(id);
+    const { productId } = useParams();
+    const { product, loading, error } = useProduct(productId);
     const [qty, setQty] = useState(1);
     const navigate = useNavigate();
     const { addToCart, isAddingToCart } = useCartMutations();
@@ -48,7 +48,7 @@ export default function ProductDetailPage() {
             </div>
             <div className="bg-white rounded-2xl p-4 flex flex-col gap-3">
                 <div className="bg-gray-100 rounded-xl flex items-center justify-center min-h-[260px]">
-                    <img src={product.image} alt={product.name} className="h-56 object-contain" />
+                    <img src={'/icons/product.png'} alt={product.name} className="h-56 object-contain" />
                 </div>
                 <div className="text-3xl font-bold mb-2">{product.price.toFixed(2)} €</div>
                 <div className="text-xl font-semibold mb-1">{product.name}</div>
