@@ -28,7 +28,7 @@ export default function ProductDetailPage() {
             },
             {
                 onSuccess: () => {
-                    navigate('/cart');
+                   // navigate('/cart');
                 },
                 onError: (error) => {
                     console.error('Failed to add to cart:', error);
