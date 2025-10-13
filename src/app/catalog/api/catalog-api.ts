@@ -83,6 +83,12 @@ export class CatalogAPI {
     const response = await apiClient.get<Product>(API_ENDPOINTS.products.detail(productId));
     return response.data;
   }
+
+  static async getSimilarProducts(productId: string): Promise<Product[]> {
+    const response = await apiClient.get<Product[]>(API_ENDPOINTS.products.similar(productId));
+    return response.data;
+  }
+
   static async getShops(): Promise<ShopsResponse> {
     const response = await apiClient.get(API_ENDPOINTS.stores.list);
     if(response.data && Array.isArray(response.data.data)) {

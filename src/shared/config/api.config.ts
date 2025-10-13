@@ -35,6 +35,7 @@ export const API_ENDPOINTS = {
   },
   products: {
     list: '/products',
-    detail: (id: string) => `/products/${id}`
+    detail: (id: string) => `/products/${id}`,
+    similar: (id: string) => `/products/${id}/similar`
    },
 } as const;

@@ -195,3 +195,32 @@ export function useProduct(productId?: string) {
 
   return { product, loading, error };
 }
+
+export function useSimilarProducts(productId?: string) {
+  const [products, setProducts] = useState<Product[]>([]);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (!productId) {
+      setProducts([]);
+      return;
+    }
+
+    const fetchSimilarProducts = async () => {
+      try {
+        setLoading(true);
+        const similarProducts = await CatalogAPI.getSimilarProducts(productId);
+        setProducts(similarProducts);
+      } catch (err) {
+        setError(err instanceof Error ? err.message : 'Failed to fetch similar products');
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchSimilarProducts();
+  }, [productId]);
+
+  return { products, loading, error };
+}

@@ -4,11 +4,13 @@ import { Boxes, Minus, Plus } from 'lucide-react';
 import { Button } from '@/shared/components/ui/button';
 import { useNavigate, useParams } from 'react-router';
 import { useCartMutations } from '@/app/cart';
-import { useProduct } from '@/app/catalog/hooks/use-catalog-api';
+import { useProduct, useSimilarProducts } from '@/app/catalog/hooks/use-catalog-api';
+import ProductCard from '@/components/molecules/product-card';
 
 export default function ProductDetailPage() {
     const { productId } = useParams();
     const { product, loading, error } = useProduct(productId);
+    const { products: similarProducts, loading: similarLoading } = useSimilarProducts(productId);
     const [qty, setQty] = useState(1);
     const navigate = useNavigate();
     const { addToCart, isAddingToCart } = useCartMutations();
@@ -52,7 +54,7 @@ export default function ProductDetailPage() {
                 </div>
                 <div className="text-3xl font-bold mb-2">{product.price.toFixed(2)} €</div>
                 <div className="text-xl font-semibold mb-1">{product.name}</div>
-                <div className="text-gray-700 mb-2">{product.description}</div>
+                <div className="text-gray-700 mb-2">Catégorie: {product.categoryId}</div>
                 <div className="flex items-center gap-2 mb-2">
                     <Button 
                         variant="vapo" 
@@ -83,6 +85,27 @@ export default function ProductDetailPage() {
                     </Button>
                 </div>
             </div>
+
+            {similarProducts.length > 0 && (
+                <div className="bg-white rounded-2xl p-4 mt-2">
+                    <div className="text-base font-semibold mb-4">D’autres produits qui peuvent vous intéresser !</div>
+                    <div className="flex gap-4 overflow-x-auto">
+                        {similarLoading ? (
+                            <div>Chargement des produits similaires...</div>
+                        ) : (
+                            similarProducts.map(p => (
+                                <button
+                                    key={p.id}
+                                    className="focus:outline-none min-w-[150px]"
+                                    onClick={() => navigate(`/product/${p.id}`)}
+                                >
+                                    <ProductCard image={p.image || ''} title={p.name} subtitle={p.priceTTC.toFixed(2) + ' €'} />
+                                </button>
+                            ))
+                        )}
+                    </div>
+                </div>
+            )}
         </div>
     );
 }
