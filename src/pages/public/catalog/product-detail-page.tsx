@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Label } from '@/shared/components/ui/label';
 import { Boxes, Minus, Plus } from 'lucide-react';
 import { Button } from '@/shared/components/ui/button';
@@ -14,6 +14,10 @@ export default function ProductDetailPage() {
     const [qty, setQty] = useState(1);
     const navigate = useNavigate();
     const { addToCart, isAddingToCart } = useCartMutations();
+
+    useEffect(() => {
+        window.scrollTo(0, 0);
+    }, [productId]);
 
     if (loading) {
         return <div className="min-h-screen flex items-center justify-center text-vapo-purple-primary">Chargement du produit...</div>;
