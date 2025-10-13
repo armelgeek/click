@@ -26,16 +26,41 @@ spec:
       imagePullSecrets:
         - name: nexus-registry-secret
 ---
-# --- Service backend (ClusterIP interne) ---
 apiVersion: v1
 kind: Service
 metadata:
   name: vapostore-uber-mobil-admin-service
 spec:
-  type: NodePort  
+  type: ClusterIP 
   selector:
     app: vapostore-uber-mobil-admin
   ports:
     - port: 5173
       targetPort: 5173
-      nodePort: 30073
+      # nodePort: 30073
+---
+# ingress
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: staging.clicknvape.fr
+  annotations:
+    cert-manager.io/cluster-issuer: "letsencrypt-production"
+    nginx.ingress.kubernetes.io/ssl-redirect: "true"
+    acme.cert-manager.io/http01-edit-in-place: "true"
+spec:
+  tls:
+  - hosts:
+    - staging.clicknvape.fr
+    secretName: "staging.clicknvape.fr-tls-acme"
+  rules:
+  - host: staging.clicknvape.fr
+    http:
+      paths:
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: vapostore-uber-mobil-admin-service
+            port:
+              number: 5173
