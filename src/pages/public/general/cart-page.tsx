@@ -1,11 +1,12 @@
 import { Label } from '@/shared/components/ui/label';
 import { ShoppingCart } from 'lucide-react';
 import CartItem from '@/components/molecules/cart-item';
+import { formatPrice } from '@/lib/utils';
 import { Button } from '@/shared/components/ui/button';
 import ProductCard from '@/components/molecules/product-card';
-import { Checkbox } from '@/shared/components/ui/checkbox';
 import { useNavigate } from 'react-router';
 import { useCart, useCartMutations } from '@/app/cart';
+import { useCartActions } from '@/app/cart/hooks/use-cart-actions';
 
 const relatedProducts = Array.from({ length: 3 }).map((_, i) => ({
     id: i + 10,
@@ -18,23 +19,16 @@ export default function CartPage() {
     const navigate = useNavigate();
     const { cart, isLoading, error } = useCart();
     const {
-        selectAllItems,
-        toggleItemSelection,
         incrementQuantity,
         decrementQuantity,
         createOrder,
-        isUpdatingCart,
         isCreatingOrder,
     } = useCartMutations();
+    const { removeFromCart } = useCartActions();
 
-    const handleSelectAll = (checked: boolean) => {
-        selectAllItems.mutate(checked);
-    };
-
-    const handleSelect = (itemId: string) => {
-        const item = cart?.items.find(item => item.id === itemId);
-        if (item) {
-            toggleItemSelection(itemId, item.selected);
+    const handleRemove = (itemId: string) => {
+        if (window.confirm('Voulez-vous vraiment retirer cet article du panier ?')) {
+            removeFromCart(itemId);
         }
     };
 
@@ -50,6 +44,16 @@ export default function CartPage() {
         if (item) {
             decrementQuantity(itemId, item.quantity);
         }
+    };
+
+    const calculateSubtotal = () => {
+        if (!cart) return 0;
+        return cart.items.reduce((total, item) => total + (item.price * item.quantity), 0);
+    };
+
+    const calculateShippingFee = () => {
+        // Frais de livraison fixe pour l'instant
+        return 4.99;
     };
 
     const handleCheckout = () => {
@@ -87,7 +91,6 @@ export default function CartPage() {
     }
 
     const hasSelectedItems = cart?.items.some(item => item.selected) || false;
-    const allItemsSelected = cart?.items.every(item => item.selected) || false;
 
     return (
         <div className="min-h-screen  flex flex-col gap-6 p-4">
@@ -111,16 +114,12 @@ export default function CartPage() {
             ) : (
                 <>
                     <div className="bg-white rounded-2xl p-6 flex flex-col gap-4">
-                        <div className="flex items-center space-x-3 mb-2">
-                            <Checkbox
-                                checked={allItemsSelected}
-                                onCheckedChange={handleSelectAll}
-                                className="w-8 h-8 rounded-lg bg-gray-200 data-[state=checked]:bg-vapo-purple-primary border-none flex items-center justify-center"
-                                aria-label="Sélectionner tous les articles"
-                                disabled={isUpdatingCart}
-                            />
-                            <span className="text-lg font-medium">Tous sélectionner</span>
-                        </div>
+                        {error && (
+                            <div className="p-4 bg-red-50 text-red-600 rounded-lg">
+                                Une erreur est survenue lors de la mise à jour du panier.
+                                Veuillez réessayer.
+                            </div>
+                        )}
                         {cart.items.map(item => (
                             <CartItem
                                 key={item.id}
@@ -133,7 +132,7 @@ export default function CartPage() {
                                     quantity: item.quantity,
                                     selected: item.selected
                                 }}
-                                onRemove={() => handleSelect(item.id)}
+                                onRemove={() => handleRemove(item.id)}
                                 onQuantityChange={(quantity) => {
                                     if (quantity > item.quantity) {
                                         handleIncrement(item.id);
@@ -143,18 +142,36 @@ export default function CartPage() {
                                 }}
                             />
                         ))}
-                        <div className="flex justify-end items-center mt-2 text-lg font-bold">
-                            Total&nbsp;<span className="text-2xl">{cart.total.toFixed(2)} €</span>
+                        <div className="border-t pt-4 space-y-2">
+                            <div className="flex justify-between text-gray-600">
+                                <span>Sous-total</span>
+                                <span>{formatPrice(calculateSubtotal())}</span>
+                            </div>
+                            <div className="flex justify-between text-gray-600">
+                                <span>Frais de livraison</span>
+                                <span>{formatPrice(calculateShippingFee())}</span>
+                            </div>
+                            <div className="flex justify-between items-center font-bold text-lg pt-2 border-t">
+                                <span>Total</span>
+                                <span className="text-2xl text-vapo-purple-primary">{formatPrice(calculateSubtotal() + calculateShippingFee())}</span>
+                            </div>
                         </div>
                     </div>
                     
                     <Button 
                         variant="vapo" 
-                        className="w-full h-14 text-lg font-semibold mt-2"
+                        className="w-full h-14 text-lg font-semibold mt-4"
                         onClick={handleCheckout}
                         disabled={!hasSelectedItems || isCreatingOrder}
                     >
-                        {isCreatingOrder ? 'Traitement en cours...' : 'Effectuer ma commande'}
+                        {isCreatingOrder ? (
+                            <div className="flex items-center gap-2">
+                                <span className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                                Traitement en cours...
+                            </div>
+                        ) : (
+                            'Effectuer ma commande'
+                        )}
                     </Button>
                 </>
             )}
