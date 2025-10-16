@@ -4,6 +4,8 @@ import ProductCard from '@/components/molecules/product-card';
 import Typography from '@/components/atoms/typography';
 import { Button } from '@/shared/components/ui/button';
 import { useShop, useShopCategories, useShopProducts } from '@/app/catalog/hooks/use-catalog';
+import { ShopProductsPageSkeleton } from '@/components/atoms/shop-products-skeleton';
+import { ProductCardSkeleton } from '@/components/atoms/skeleton';
 
 export default function ShopProductsPage() {
   const navigate = useNavigate();
@@ -15,11 +17,7 @@ export default function ShopProductsPage() {
   const { products, loading: productsLoading, error: productsError } = useShopProducts(shopId, selectedCategoryId);
 
   if (shopLoading || categoriesLoading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="text-vapo-purple-primary">Chargement...</div>
-      </div>
-    );
+    return <ShopProductsPageSkeleton />;
   }
 
   if (shopError || categoriesError || productsError) {
@@ -86,8 +84,10 @@ export default function ShopProductsPage() {
           </div>
           
           {productsLoading ? (
-            <div className="text-center py-8 text-vapo-purple-primary">
-              Chargement des produits...
+            <div className="grid grid-cols-3 gap-4 my-4">
+                {Array.from({ length: 9 }).map((_, i) => (
+                    <ProductCardSkeleton key={i} />
+                ))}
             </div>
           ) : products.length === 0 ? (
             <div className="text-center py-8 text-gray-500">

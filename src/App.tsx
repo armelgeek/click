@@ -40,7 +40,6 @@ function App() {
     <Provider>
       <CartProvider>
         <NetworkStatusBanner />
-        <PWAInstallButton variant="banner" />
         <AgeWarningModal open={!ageAccepted} onAccept={handleAccept} onQuit={handleQuit} />
         <ToastContainer />
         <RouterProvider router={router} />

@@ -37,6 +37,7 @@ function RecommendedProducts({ cartItems }: { cartItems: CartItemType[] }) {
     );
 }
 import { useCartActions } from '@/app/cart/hooks/use-cart-actions';
+import { CartPageSkeleton } from '@/components/atoms/cart-skeleton';
 
 export default function CartPage() {
     const navigate = useNavigate();
@@ -98,11 +99,7 @@ export default function CartPage() {
     };
 
     if (isLoading) {
-        return (
-            <div className="min-h-screen flex items-center justify-center">
-                <div className="text-lg">Chargement du panier...</div>
-            </div>
-        );
+        return <CartPageSkeleton />;
     }
 
     if (error) {

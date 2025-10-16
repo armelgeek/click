@@ -13,17 +13,14 @@ import {
 } from '@/shared/components/ui/select';
 import { Search } from 'lucide-react';
 import { useShops } from '@/app/catalog/hooks/use-catalog';
+import { ShopListPageSkeleton } from '@/components/atoms/shop-list-skeleton';
 
 export default function ShopListPage() {
   const navigate = useNavigate();
   const { shops, loading, error } = useShops();
 
   if (loading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="text-vapo-purple-primary">Chargement des magasins...</div>
-      </div>
-    );
+    return <ShopListPageSkeleton />;
   }
 
   if (error) {

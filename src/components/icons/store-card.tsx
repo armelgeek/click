@@ -47,18 +47,7 @@ export default function StoreCard({ name, image, className = '' }: StoreCardProp
                 <h3 className="text-gray-800 font-medium px-2 text-sm sm:text-base leading-tight">
                     {name}
                 </h3>
-                <div className="h-6">
-                    <span className="text-xs text-vapo-purple-primary font-medium 
-                        absolute inset-x-0 transform translate-y-1 opacity-0 
-                        group-hover:translate-y-0 group-hover:opacity-100 
-                        transition-all duration-300 flex items-center justify-center gap-1"
-                    >
-                        Voir les produits
-                        <svg className="w-3 h-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                            <path d="M5 12h14M12 5l7 7-7 7"/>
-                        </svg>
-                    </span>
-                </div>
+        
             </div>
         </div>
     );

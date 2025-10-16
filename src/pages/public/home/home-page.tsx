@@ -5,6 +5,8 @@ import StoreCard from '@/components/icons/store-card';
 import { useNavigate } from 'react-router';
 import { Label } from '@/shared/components/ui/label';
 import { useShops } from '@/app/catalog/hooks/use-catalog';
+import { HomePageSkeleton } from '@/components/atoms/home-skeleton';
+
 export function HomePage() {
     const { shops, loading, error } = useShops();
     const navigate = useNavigate();
@@ -13,11 +15,7 @@ export function HomePage() {
     const otherStores = shops.filter(shop => !shop.isNearby);
 
     if (loading) {
-        return (
-            <div className="min-h-screen flex items-center justify-center">
-                <div className="text-vapo-purple-primary">Chargement des magasins...</div>
-            </div>
-        );
+        return <HomePageSkeleton />;
     }
 
     if (error) {

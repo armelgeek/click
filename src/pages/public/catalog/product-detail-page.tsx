@@ -6,6 +6,7 @@ import { useNavigate, useParams } from 'react-router';
 import { useCartMutations } from '@/app/cart';
 import { useProduct, useSimilarProducts } from '@/app/catalog/hooks/use-catalog-api';
 import ProductCard from '@/components/molecules/product-card';
+import { ProductDetailSkeleton } from '@/components/atoms/product-detail-skeleton';
 
 export default function ProductDetailPage() {
     const { productId } = useParams();
@@ -20,7 +21,7 @@ export default function ProductDetailPage() {
     }, [productId]);
 
     if (loading) {
-        return <div className="min-h-screen flex items-center justify-center text-vapo-purple-primary">Chargement du produit...</div>;
+        return <ProductDetailSkeleton />;
     }
     if (error || !product) {
         return <div className="min-h-screen flex items-center justify-center text-red-500">Produit introuvable</div>;
