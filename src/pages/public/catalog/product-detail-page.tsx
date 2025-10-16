@@ -7,6 +7,7 @@ import { useCartMutations } from '@/app/cart';
 import { useProduct, useSimilarProducts } from '@/app/catalog/hooks/use-catalog-api';
 import ProductCard from '@/components/molecules/product-card';
 import { ProductDetailSkeleton } from '@/components/atoms/product-detail-skeleton';
+import { toastService } from '@/hooks/use-toast';
 
 export default function ProductDetailPage() {
     const { productId } = useParams();
@@ -35,9 +36,18 @@ export default function ProductDetailPage() {
             },
             {
                 onSuccess: () => {
-                   // navigate('/cart');
+                    toastService.addToast({
+                        type: 'success',
+                        message: `${product.name} a été ajouté au panier`,
+                        duration: 3000
+                    });
                 },
                 onError: (error) => {
+                    toastService.addToast({
+                        type: 'error',
+                        message: 'Erreur lors de l\'ajout au panier',
+                        duration: 3000
+                    });
                     console.error('Failed to add to cart:', error);
                 },
             }
