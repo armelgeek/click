@@ -11,7 +11,8 @@ export default function ProductCard({ image, title, subtitle, className = '' }: 
                 <img 
                     src={image} 
                     alt={title} 
-                    className="object-contain w-full h-full max-h-[120px]" 
+                    className="object-contain w-full h-full max-h-[120px]"
+                    onError={(e) => { e.currentTarget.src = '/icons/product.png'; }}
                 />
             </div>
             <div className="p-4 flex flex-col">
