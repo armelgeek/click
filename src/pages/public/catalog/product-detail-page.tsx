@@ -55,15 +55,15 @@ export default function ProductDetailPage() {
             <div className="bg-white rounded-2xl p-6 flex flex-col gap-6">
                 <div className="bg-gray-50 rounded-xl flex items-center justify-center aspect-square max-h-[400px] p-8">
                     <img 
-                        src={product.image || '/icons/product.png'} 
+                        src={product.image} 
                         alt={product.name} 
                         className="w-full h-full object-contain" 
+                        onError={(e) => { e.currentTarget.src = '/icons/product.png'; }}
                     />
                 </div>
                 <div className="space-y-4">
                     <div>
-                        <h1 className="text-2xl font-medium text-gray-900 mb-2">{product.name}</h1>
-                        <div className="text-gray-600">Catégorie: {product.categoryId}</div>
+                        <h1 className="text-xl font-medium text-gray-900 mb-2">{product.name}</h1>
                     </div>
                     <div className="text-3xl font-bold text-vapo-purple-primary">
                         {product.price.toFixed(2)} €

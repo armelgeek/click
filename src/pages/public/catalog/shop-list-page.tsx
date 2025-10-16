@@ -59,19 +59,20 @@ export default function ShopListPage() {
       <Label icon={<Gem className="text-vapo-purple-primary w-5 h-5" />} className="text-vapo-purple-primary text-base font-semibold mb-2">
         Les magasins Vapostore près de vous!
       </Label>
-      <div className="flex gap-4 overflow-x-auto pb-2">
+      <div className="flex gap-6 overflow-x-auto scrollbar-hide pb-4 -mx-2 px-2">
         {nearbyStores.length === 0 ? (
-          <div className="text-gray-400 text-center w-full py-8">Aucun magasin à proximité pour le moment.</div>
+          <div className="text-gray-500 text-center w-full py-8 bg-gray-50/50 rounded-xl">
+            Aucun magasin à proximité pour le moment.
+          </div>
         ) : (
           nearbyStores.map(store => (
-            <button
+            <div
               key={store.id}
-              className="min-w-[180px] focus:outline-none"
-              style={{cursor:'pointer'}}
+              className="min-w-[200px] focus:outline-none"
               onClick={() => navigate(`/shop/${store.id}`)}
             >
-              <StoreCard name={store.name} />
-            </button>
+              <StoreCard name={store.name} image={store.image} />
+            </div>
           ))
         )}
       </div>
@@ -97,19 +98,20 @@ export default function ShopListPage() {
           </SelectContent>
         </Select>
       </div>
-      <div className="grid grid-cols-3 gap-4">
+            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-6">
         {otherStores.length === 0 ? (
-          <div className="col-span-3 text-gray-400 text-center py-8">Aucun autre magasin disponible.</div>
+          <div className="col-span-full text-gray-500 text-center w-full py-8 bg-gray-50/50 rounded-xl">
+            Aucun autre magasin disponible pour le moment.
+          </div>
         ) : (
           otherStores.map(store => (
-            <button
+            <div
               key={store.id}
-              className="focus:outline-none"
-              style={{cursor:'pointer'}}
               onClick={() => navigate(`/shop/${store.id}`)}
+              className="transform hover:scale-[1.02] transition-transform duration-200"
             >
-              <StoreCard name={store.name} />
-            </button>
+              <StoreCard name={store.name} image={store.image} />
+            </div>
           ))
         )}
       </div>
