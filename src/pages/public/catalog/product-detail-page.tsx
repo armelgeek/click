@@ -52,50 +52,74 @@ export default function ProductDetailPage() {
                     Retour à la liste
                 </Button>
             </div>
-            <div className="bg-white rounded-2xl p-4 flex flex-col gap-3">
-                <div className="bg-gray-100 rounded-xl flex items-center justify-center min-h-[260px]">
-                    <img src={'/icons/product.png'} alt={product.name} className="h-56 object-contain" />
+            <div className="bg-white rounded-2xl p-6 flex flex-col gap-6">
+                <div className="bg-gray-50 rounded-xl flex items-center justify-center aspect-square max-h-[400px] p-8">
+                    <img 
+                        src={product.image || '/icons/product.png'} 
+                        alt={product.name} 
+                        className="w-full h-full object-contain" 
+                    />
                 </div>
-                <div className="text-3xl font-bold mb-2">{product.price.toFixed(2)} €</div>
-                <div className="text-xl font-semibold mb-1">{product.name}</div>
-                <div className="text-gray-700 mb-2">Catégorie: {product.categoryId}</div>
-                <div className="flex items-center gap-2 mb-2">
-                    <Button 
-                        variant="vapo" 
-                        size="icon" 
-                        onClick={() => setQty(q => Math.max(1, q - 1))} 
-                        className='rounded-full'
-                        disabled={isAddingToCart}
-                    >
-                        <Minus />
-                    </Button>
-                    <span className="text-lg font-semibold w-6 text-center">{qty}</span>
-                    <Button 
-                        variant="vapo" 
-                        size="icon" 
-                        className='rounded-full' 
-                        onClick={() => setQty(q => q + 1)}
-                        disabled={isAddingToCart}
-                    >
-                        <Plus />
-                    </Button>
-                    <Button 
-                        variant="vapo" 
-                        className="flex-1 h-10 ml-4"
-                        onClick={handleAddToCart}
-                        disabled={isAddingToCart}
-                    >
-                        {isAddingToCart ? 'Ajout en cours...' : 'Ajouter au panier'}
-                    </Button>
+                <div className="space-y-4">
+                    <div>
+                        <h1 className="text-2xl font-medium text-gray-900 mb-2">{product.name}</h1>
+                        <div className="text-gray-600">Catégorie: {product.categoryId}</div>
+                    </div>
+                    <div className="text-3xl font-bold text-vapo-purple-primary">
+                        {product.price.toFixed(2)} €
+                    </div>
+                    <div className="flex items-center gap-3">
+                        <div className="flex items-center gap-2 bg-gray-50 rounded-full p-1">
+                            <Button 
+                                variant="ghost" 
+                                size="icon" 
+                                onClick={() => setQty(q => Math.max(1, q - 1))} 
+                                className="h-8 w-8 rounded-full hover:bg-white"
+                                disabled={isAddingToCart}
+                            >
+                                <Minus className="w-4 h-4" />
+                            </Button>
+                            <span className="text-lg font-medium w-8 text-center">{qty}</span>
+                            <Button 
+                                variant="ghost" 
+                                size="icon" 
+                                className="h-8 w-8 rounded-full hover:bg-white"
+                                onClick={() => setQty(q => q + 1)}
+                                disabled={isAddingToCart}
+                            >
+                                <Plus className="w-4 h-4" />
+                            </Button>
+                        </div>
+                        <Button 
+                            variant="vapo" 
+                            className="flex-1 h-12 text-base font-medium"
+                            onClick={handleAddToCart}
+                            disabled={isAddingToCart}
+                        >
+                            {isAddingToCart ? (
+                                <div className="flex items-center gap-2">
+                                    <span className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                                    Ajout en cours...
+                                </div>
+                            ) : (
+                                'Ajouter au panier'
+                            )}
+                        </Button>
+                    </div>
                 </div>
             </div>
 
             {similarProducts.length > 0 && (
-                <div className="bg-white rounded-2xl p-4 mt-2">
-                    <div className="text-base font-semibold mb-4">D’autres produits qui peuvent vous intéresser !</div>
-                    <div className="flex gap-4 overflow-x-auto">
+                <div className="bg-white rounded-2xl p-6 mt-4">
+                    <div className="flex items-center justify-between mb-6">
+                        <h2 className="text-xl font-semibold text-gray-800">Vous pourriez aussi aimer</h2>
+                        <button onClick={() => navigate('/catalog')} className="text-sm text-vapo-purple-primary hover:underline">
+                            Voir plus
+                        </button>
+                    </div>
+                    <div className="flex gap-6 overflow-x-auto scrollbar-hide pb-4 -mx-2 px-2">
                         {similarLoading ? (
-                            <div>Chargement des produits similaires...</div>
+                            <div className="text-gray-500">Chargement des produits similaires...</div>
                         ) : (
                             similarProducts.map(p => (
                                 <button
