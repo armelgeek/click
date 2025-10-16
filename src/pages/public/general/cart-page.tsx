@@ -21,7 +21,11 @@ function RecommendedProducts({ cartItems }: { cartItems: CartItemType[] }) {
     return (
         <>
             {recommendedProducts.slice(0, 4).map((product) => (
-                <Link key={product.id} to={`/product/${product.id}`} className="no-underline">
+                <Link 
+                    key={product.id} 
+                    to={`/product/${product.id}`} 
+                    className="no-underline block transform hover:scale-[1.02] transition-transform duration-200"
+                >
                     <ProductCard
                         image={product.image || '/icons/product-placeholder.png'}
                         title={product.name}
@@ -196,9 +200,14 @@ export default function CartPage() {
             )}
 
             {cart && cart.items.length > 0 && (
-                <div className="bg-white rounded-2xl p-6 mt-2">
-                    <div className="text-lg font-semibold mb-4">Vous pourriez aussi aimer</div>
-                    <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+                <div className="bg-white rounded-2xl p-6 mt-4">
+                    <div className="flex items-center justify-between mb-6">
+                        <h2 className="text-xl font-semibold text-gray-800">Vous pourriez aussi aimer</h2>
+                        <Link to="/catalog" className="text-sm text-vapo-purple-primary hover:underline">
+                            Voir plus
+                        </Link>
+                    </div>
+                    <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-6">
                         <RecommendedProducts cartItems={cart.items} />
                     </div>
                 </div>
