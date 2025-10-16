@@ -4,16 +4,35 @@ import CartItem from '@/components/molecules/cart-item';
 import { formatPrice } from '@/lib/utils';
 import { Button } from '@/shared/components/ui/button';
 import ProductCard from '@/components/molecules/product-card';
-import { useNavigate } from 'react-router';
+import { useNavigate, Link } from 'react-router';
 import { useCart, useCartMutations } from '@/app/cart';
-import { useCartActions } from '@/app/cart/hooks/use-cart-actions';
+import { useRecommendedProducts } from '@/app/catalog/hooks/use-recommended-products';
+import { CartItem as CartItemType } from '@/app/cart/types';
 
-const relatedProducts = Array.from({ length: 3 }).map((_, i) => ({
-    id: i + 10,
-    name: 'Blue Devil By Avap 50ml',
-    price: 25.90,
-    image: "/icons/product.png"
-}));
+function RecommendedProducts({ cartItems }: { cartItems: CartItemType[] }) {
+    // On prend le premier article du panier pour avoir des recommandations basées sur lui
+    const firstItem = cartItems[0];
+    const { data: recommendedProducts, isLoading } = useRecommendedProducts(firstItem?.productId, !!firstItem);
+
+    if (isLoading || !recommendedProducts?.length) {
+        return null;
+    }
+
+    return (
+        <>
+            {recommendedProducts.slice(0, 4).map((product) => (
+                <Link key={product.id} to={`/product/${product.id}`} className="no-underline">
+                    <ProductCard
+                        image={product.image || '/icons/product-placeholder.png'}
+                        title={product.name}
+                        subtitle={`${product.priceTTC.toFixed(2)} €`}
+                    />
+                </Link>
+            ))}
+        </>
+    );
+}
+import { useCartActions } from '@/app/cart/hooks/use-cart-actions';
 
 export default function CartPage() {
     const navigate = useNavigate();
@@ -176,14 +195,14 @@ export default function CartPage() {
                 </>
             )}
 
-            <div className="bg-white rounded-2xl p-6 mt-2">
-                <div className="text-lg font-semibold mb-4">D'autres produits qui peuvent vous intéresser !</div>
-                <div className="flex gap-4">
-                    {relatedProducts.map(p => (
-                        <ProductCard key={p.id} image={p.image} title={p.name} subtitle={p.price.toFixed(2) + ' €'} />
-                    ))}
+            {cart && cart.items.length > 0 && (
+                <div className="bg-white rounded-2xl p-6 mt-2">
+                    <div className="text-lg font-semibold mb-4">Vous pourriez aussi aimer</div>
+                    <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+                        <RecommendedProducts cartItems={cart.items} />
+                    </div>
                 </div>
-            </div>
+            )}
         </div>
     );
 }
