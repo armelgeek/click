@@ -1,15 +1,18 @@
 import Typography from '../atoms/typography';
 import IconButton from '../atoms/icon-button';
 import BellIcon from '../icons/bell-icon';
-//import CartIcon from '../icons/CartIcon';
+import CartIcon from '../icons/cart-icon';
 import MenuIcon from '../icons/menu-icon';
 import CloseIcon from '../icons/close-icon';
 import PWAInstallButton from '../atoms/pwa-install-button';
+import { useCartStore } from '@/app/cart';
 import { useState } from 'react';
 import SideMenu from './side-menu';
-import { Link } from 'react-router';
+import { Link, useNavigate } from 'react-router';
 export default function VapoHeader() {
     const [menuOpen, setMenuOpen] = useState(false);
+    const { itemCount } = useCartStore();
+    const navigate = useNavigate();
     return (
         <header className="w-full relative">
             <div className="bg-vapo-purple-primary text-white text-center py-2 px-4">
@@ -26,9 +29,18 @@ export default function VapoHeader() {
                     <IconButton notification aria-label="Notifications">
                         <BellIcon className="text-white" />
                     </IconButton>
-                    {/**<IconButton aria-label="Panier">
+                    <IconButton 
+                        aria-label="Voir le panier"
+                        onClick={() => navigate('/cart')}
+                        className="relative"
+                    >
                         <CartIcon className="text-white" />
-                    </IconButton>**/}
+                        {itemCount > 0 && (
+                            <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs w-4 h-4 rounded-full flex items-center justify-center">
+                                {itemCount}
+                            </span>
+                        )}
+                    </IconButton>
                     <IconButton
                         aria-label={menuOpen ? "Fermer le menu" : "Ouvrir le menu"}
                         onClick={() => setMenuOpen((v) => !v)}
