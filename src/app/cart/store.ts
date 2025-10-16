@@ -1,0 +1,95 @@
+import { create } from 'zustand';
+import { CartItem, Cart } from './types';
+import { persist } from 'zustand/middleware';
+
+interface CartState {
+  items: CartItem[];
+  total: number;
+  itemCount: number;
+  isOpen: boolean;
+  openCart: () => void;
+  closeCart: () => void;
+  addItem: (item: CartItem) => void;
+  removeItem: (itemId: string) => void;
+  updateItemQuantity: (itemId: string, quantity: number) => void;
+  clearCart: () => void;
+  setCartData: (cart: Cart) => void;
+}
+
+export const useCartStore = create<CartState>()(
+  persist(
+    (set) => ({
+      items: [],
+      total: 0,
+      itemCount: 0,
+      isOpen: false,
+      openCart: () => set({ isOpen: true }),
+      closeCart: () => set({ isOpen: false }),
+      addItem: (item) =>
+        set((state) => {
+          const existingItem = state.items.find((i) => i.productId === item.productId);
+          if (existingItem) {
+            const updatedItems = state.items.map((i) =>
+              i.productId === item.productId
+                ? { ...i, quantity: i.quantity + item.quantity }
+                : i
+            );
+            return {
+              items: updatedItems,
+              total: calculateTotal(updatedItems),
+              itemCount: calculateItemCount(updatedItems),
+            };
+          }
+          const newItems = [...state.items, item];
+          return {
+            items: newItems,
+            total: calculateTotal(newItems),
+            itemCount: calculateItemCount(newItems),
+          };
+        }),
+      removeItem: (itemId) =>
+        set((state) => {
+          const newItems = state.items.filter((i) => i.id !== itemId);
+          return {
+            items: newItems,
+            total: calculateTotal(newItems),
+            itemCount: calculateItemCount(newItems),
+          };
+        }),
+      updateItemQuantity: (itemId, quantity) =>
+        set((state) => {
+          const newItems = state.items.map((item) =>
+            item.id === itemId ? { ...item, quantity } : item
+          );
+          return {
+            items: newItems,
+            total: calculateTotal(newItems),
+            itemCount: calculateItemCount(newItems),
+          };
+        }),
+      clearCart: () =>
+        set({
+          items: [],
+          total: 0,
+          itemCount: 0,
+        }),
+      setCartData: (cart) =>
+        set({
+          items: cart.items,
+          total: cart.total,
+          itemCount: cart.itemCount,
+        }),
+    }),
+    {
+      name: 'cart-storage',
+    }
+  )
+);
+
+const calculateTotal = (items: CartItem[]): number => {
+  return items.reduce((acc, item) => acc + item.price * item.quantity, 0);
+};
+
+const calculateItemCount = (items: CartItem[]): number => {
+  return items.reduce((acc, item) => acc + item.quantity, 0);
+};

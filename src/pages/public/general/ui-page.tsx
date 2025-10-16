@@ -43,24 +43,30 @@ export function UiPage() {
 
             <div className="flex flex-col justify-center gap-2 py-4 px-3">
                 <CartItem
-                    image="/icons/product.png"
-                    title="Blue Devil By Avap 50ml"
-                    subtitle="25.90 €"
-                    quantity={2}
-                    selected={true}
-                    onSelect={() => { }}
-                    onIncrement={() => { }}
-                    onDecrement={() => { }}
+                    item={{
+                        id: '1',
+                        productId: '1',
+                        name: 'Blue Devil By Avap 50ml',
+                        price: 25.90,
+                        image: '/icons/product.png',
+                        quantity: 2,
+                        selected: true
+                    }}
+                    onRemove={() => { }}
+                    onQuantityChange={() => { }}
                 />
                 <CartItem
-                    image="/icons/product.png"
-                    title="Red Devil By Avap 50ml"
-                    subtitle="25.90 €"
-                    quantity={1}
-                    selected={false}
-                    onSelect={() => { }}
-                    onIncrement={() => { }}
-                    onDecrement={() => { }}
+                    item={{
+                        id: '2',
+                        productId: '2',
+                        name: 'Red Devil By Avap 50ml',
+                        price: 25.90,
+                        image: '/icons/product.png',
+                        quantity: 1,
+                        selected: false
+                    }}
+                    onRemove={() => { }}
+                    onQuantityChange={() => { }}
                 />
             </div>
             <div className="flex flex-row gap-3 justify-center py-4">

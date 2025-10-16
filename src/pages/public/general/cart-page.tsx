@@ -124,15 +124,23 @@ export default function CartPage() {
                         {cart.items.map(item => (
                             <CartItem
                                 key={item.id}
-                                image={item.image}
-                                title={item.name}
-                                subtitle={item.price.toFixed(2) + ' €'}
-                                quantity={item.quantity}
-                                selected={item.selected}
-                                onSelect={() => handleSelect(item.id)}
-                                onIncrement={() => handleIncrement(item.id)}
-                                onDecrement={() => handleDecrement(item.id)}
-                                className="border-b border-gray-100 last:border-none"
+                                item={{
+                                    id: item.id,
+                                    productId: item.productId,
+                                    name: item.name,
+                                    price: item.price,
+                                    image: item.image,
+                                    quantity: item.quantity,
+                                    selected: item.selected
+                                }}
+                                onRemove={() => handleSelect(item.id)}
+                                onQuantityChange={(quantity) => {
+                                    if (quantity > item.quantity) {
+                                        handleIncrement(item.id);
+                                    } else {
+                                        handleDecrement(item.id);
+                                    }
+                                }}
                             />
                         ))}
                         <div className="flex justify-end items-center mt-2 text-lg font-bold">

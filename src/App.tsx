@@ -6,6 +6,7 @@ import NetworkStatusBanner from './components/atoms/network-status-banner';
 import PWAInstallButton from './components/atoms/pwa-install-button';
 import AgeWarningModal from './components/organisms/age-warning-modal';
 import { ToastContainer } from './components/atoms/toast-container';
+import { CartProvider, CartDrawer } from '@/app/cart';
 const router = createBrowserRouter(routes);
 function App() {
   const [, setIsOnline] = useState(navigator.onLine);
@@ -37,11 +38,14 @@ function App() {
 
   return (
     <Provider>
-      <NetworkStatusBanner />
-      <PWAInstallButton variant="banner" />
-      <AgeWarningModal open={!ageAccepted} onAccept={handleAccept} onQuit={handleQuit} />
-      <ToastContainer />
-      <RouterProvider router={router} />
+      <CartProvider>
+        <NetworkStatusBanner />
+        <PWAInstallButton variant="banner" />
+        <AgeWarningModal open={!ageAccepted} onAccept={handleAccept} onQuit={handleQuit} />
+        <CartDrawer />
+        <ToastContainer />
+        <RouterProvider router={router} />
+      </CartProvider>
     </Provider>
   );
 }

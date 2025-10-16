@@ -8,7 +8,7 @@ export default function ProductCard({ image, title, subtitle, className = '' }: 
     return (
         <div className={`rounded-xl bg-gray-100 flex flex-col items-center flex-1 w-full min-h-[180px] max-h-[220px] ${className}`}>
             <div className="w-full flex items-center justify-center rounded-xl overflow-hidden bg-white min-h-[80px] max-h-[100px]">
-                <img src={'/icons/product.png'} alt={title} className="object-cover max-h-[90px]" />
+                <img src={image} alt={title} className="object-cover max-h-[90px]" />
             </div>
             <div className="flex-1 flex flex-col justify-end w-full px-2">
                 <span

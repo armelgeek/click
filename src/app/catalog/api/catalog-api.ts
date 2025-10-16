@@ -9,7 +9,7 @@ import {
   Shop
 } from '../types';
 import { apiClient, API_ENDPOINTS } from '@/shared/config/api.config';
-import { mockShops, mockCategories } from '../data/mock-data';
+import { mockCategories } from '../data/mock-data';
 
 
 const delay = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));

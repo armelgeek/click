@@ -1,7 +1,6 @@
 import { useNavigate, useParams } from 'react-router';
 import { useState } from 'react';
 import ProductCard from '@/components/molecules/product-card';
-import CategoryIcon from '@/components/atoms/category-icon';
 import Typography from '@/components/atoms/typography';
 import { Button } from '@/shared/components/ui/button';
 import { useShop, useShopCategories, useShopProducts } from '@/app/catalog/hooks/use-catalog';
@@ -41,9 +40,7 @@ export default function ShopProductsPage() {
     );
   }
 
-  const handleCategoryClick = (categoryId: string) => {
-    setSelectedCategoryId(selectedCategoryId === categoryId ? undefined : categoryId);
-  };
+
   return (
     <div className="min-h-screen  flex flex-col">
       <main className="flex-1 w-full mb-4">
