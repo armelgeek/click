@@ -1,5 +1,7 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { CartAPI } from '../api/cart-api';
+import { useCartStore } from '../store';
+import { CartResponse } from '../types';
 import { cartKeys, CART_STALE_TIME, CART_CACHE_TIME } from '../config';
 import { AddToCartPayload, UpdateCartItemPayload, CreateOrderPayload } from '../types';
 
@@ -35,8 +37,19 @@ export const useCartMutations = () => {
 
   const addToCart = useMutation({
     mutationFn: (payload: AddToCartPayload) => CartAPI.addToCart(payload),
-    onSuccess: () => {
+  onSuccess: (data: CartResponse) => {
+      // update react-query cache
       queryClient.invalidateQueries({ queryKey: cartKeys.cart() });
+      // update local zustand store immediately so header reflects change
+      if (data?.cart) {
+        useCartStore.getState().setCartData(data.cart);
+        try {
+          const updatedAt = (data.cart as unknown as { updatedAt?: string }).updatedAt || new Date().toISOString();
+          localStorage.setItem('cart-local-updatedAt', updatedAt);
+        } catch (err) {
+          console.warn('Failed to save cart updatedAt', err);
+        }
+      }
     },
     onError: (error) => {
       console.error('Failed to add to cart:', error);
@@ -46,8 +59,17 @@ export const useCartMutations = () => {
   const updateCartItem = useMutation({
     mutationFn: ({ itemId, payload }: { itemId: string; payload: UpdateCartItemPayload }) =>
       CartAPI.updateCartItem(itemId, payload),
-    onSuccess: () => {
+  onSuccess: (data: CartResponse) => {
       queryClient.invalidateQueries({ queryKey: cartKeys.cart() });
+      if (data?.cart) {
+        useCartStore.getState().setCartData(data.cart);
+        try {
+          const updatedAt = (data.cart as unknown as { updatedAt?: string }).updatedAt || new Date().toISOString();
+          localStorage.setItem('cart-local-updatedAt', updatedAt);
+        } catch (err) {
+          console.warn('Failed to save cart updatedAt', err);
+        }
+      }
     },
     onError: (error) => {
       console.error('Failed to update cart item:', error);
@@ -56,8 +78,17 @@ export const useCartMutations = () => {
 
   const removeFromCart = useMutation({
     mutationFn: (itemId: string) => CartAPI.removeFromCart(itemId),
-    onSuccess: () => {
+  onSuccess: (data: CartResponse) => {
       queryClient.invalidateQueries({ queryKey: cartKeys.cart() });
+      if (data?.cart) {
+        useCartStore.getState().setCartData(data.cart);
+        try {
+          const updatedAt = (data.cart as unknown as { updatedAt?: string }).updatedAt || new Date().toISOString();
+          localStorage.setItem('cart-local-updatedAt', updatedAt);
+        } catch (err) {
+          console.warn('Failed to save cart updatedAt', err);
+        }
+      }
     },
     onError: (error) => {
       console.error('Failed to remove from cart:', error);
@@ -66,8 +97,17 @@ export const useCartMutations = () => {
 
   const clearCart = useMutation({
     mutationFn: () => CartAPI.clearCart(),
-    onSuccess: () => {
+  onSuccess: (data: CartResponse) => {
       queryClient.invalidateQueries({ queryKey: cartKeys.cart() });
+      if (data?.cart) {
+        useCartStore.getState().setCartData(data.cart);
+        try {
+          const updatedAt = (data.cart as unknown as { updatedAt?: string }).updatedAt || new Date().toISOString();
+          localStorage.setItem('cart-local-updatedAt', updatedAt);
+        } catch (err) {
+          console.warn('Failed to save cart updatedAt', err);
+        }
+      }
     },
     onError: (error) => {
       console.error('Failed to clear cart:', error);
@@ -76,8 +116,15 @@ export const useCartMutations = () => {
 
   const selectAllItems = useMutation({
     mutationFn: (selected: boolean) => CartAPI.selectAllItems(selected),
-    onSuccess: () => {
+  onSuccess: (data: CartResponse) => {
       queryClient.invalidateQueries({ queryKey: cartKeys.cart() });
+      if (data?.cart) {
+        useCartStore.getState().setCartData(data.cart);
+        try {
+          const updatedAt = (data.cart as any).updatedAt || new Date().toISOString();
+          localStorage.setItem('cart-local-updatedAt', updatedAt);
+        } catch (e) {}
+      }
     },
     onError: (error) => {
       console.error('Failed to select all items:', error);
@@ -87,6 +134,7 @@ export const useCartMutations = () => {
   const createOrder = useMutation({
     mutationFn: (payload: CreateOrderPayload) => CartAPI.createOrder(payload),
     onSuccess: () => {
+      // Order created, invalidate cart and orders so data is refreshed from the server
       queryClient.invalidateQueries({ queryKey: cartKeys.cart() });
       queryClient.invalidateQueries({ queryKey: ['orders'] });
     },
