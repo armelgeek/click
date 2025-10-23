@@ -204,7 +204,12 @@ export default function CartPage() {
                             Voir plus
                         </Link>
                     </div>
-                    <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-6">
+                    <div
+                        className="flex gap-6 overflow-x-auto scrollbar-thin scrollbar-thumb-vapo-purple-primary scrollbar-track-gray-100 py-1 px-1"
+                        style={{ scrollSnapType: 'x mandatory', WebkitOverflowScrolling: 'touch' }}
+                        tabIndex={0}
+                        aria-label="Produits recommandés à faire défiler horizontalement"
+                    >
                         <RecommendedProducts cartItems={cart.items} />
                     </div>
                 </div>
