@@ -20,6 +20,8 @@ export interface Product {
   name: string;
   category: string;
   image?: string;
+  images?: string[];
+  owner?: string;
   priceHT: number;
   priceTTC: number;
   vat: string;

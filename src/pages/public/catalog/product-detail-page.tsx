@@ -1,3 +1,34 @@
+import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from '@/shared/components/ui/carousel';
+
+function hasImagesAndOwner(product: unknown): product is { owner: string; images: string[]; name: string } {
+    const obj = product as Record<string, unknown>;
+    return (
+        typeof product === 'object' &&
+        product !== null &&
+        'owner' in obj && typeof obj.owner === 'string' &&
+        'images' in obj && Array.isArray(obj.images) && (obj.images as string[]).length > 1 &&
+        'name' in obj && typeof obj.name === 'string'
+    );
+}
+type ProductImageInfo = {
+    image?: string;
+    images?: string[];
+    owner?: string;
+};
+
+function getProductMainImage(product: ProductImageInfo): string {
+    let img = '';
+    if (product.owner === 'VAPOSTORE' && Array.isArray(product.images) && product.images.length > 0) {
+        img = product.images[0];
+    } else {
+        img = product.image || '';
+    }
+    // If not a valid URL, fallback to default icon
+    if (!img || !(img.startsWith('http://') || img.startsWith('https://'))) {
+        return '/icons/product.png';
+    }
+    return img;
+}
 import { useState, useEffect } from 'react';
 import { Label } from '@/shared/components/ui/label';
 import { Boxes, Minus, Plus } from 'lucide-react';
@@ -65,12 +96,31 @@ export default function ProductDetailPage() {
             </div>
             <div className="bg-white rounded-2xl p-6 flex flex-col gap-6">
                 <div className="bg-gray-50 rounded-xl flex items-center justify-center aspect-square max-h-[400px] p-8">
-                    <img 
-                        src={product.image} 
-                        alt={product.name} 
-                        className="w-full h-full object-contain" 
-                        onError={(e) => { e.currentTarget.src = '/icons/product.png'; }}
-                    />
+                    {hasImagesAndOwner(product) && product.owner !== 'VAPOSTORE' ? (
+                        <Carousel className="w-full max-w-[400px]">
+                            <CarouselContent>
+                                {product.images.map((img: string, idx: number) => (
+                                    <CarouselItem key={String(idx)}>
+                                        <img
+                                            src={typeof img === 'string' && (img.startsWith('http://') || img.startsWith('https://')) ? img : '/icons/product.png'}
+                                            alt={product.name + ' ' + (idx + 1)}
+                                            className="object-contain w-full h-full max-h-[320px] rounded-lg border"
+                                            onError={(e) => { e.currentTarget.src = '/icons/product.png'; }}
+                                        />
+                                    </CarouselItem>
+                                ))}
+                            </CarouselContent>
+                            <CarouselPrevious />
+                            <CarouselNext />
+                        </Carousel>
+                    ) : (
+                        <img 
+                            src={getProductMainImage(product)}
+                            alt={product.name}
+                            className="w-full h-full object-contain"
+                            onError={(e) => { e.currentTarget.src = '/icons/product.png'; }}
+                        />
+                    )}
                 </div>
                 <div className="space-y-4">
                     <div>
@@ -102,7 +152,7 @@ export default function ProductDetailPage() {
                             </Button>
                         </div>
                         <Button 
-                            variant="vapo" 
+                            variant="default" 
                             className="flex-1 h-12 text-base font-medium"
                             onClick={handleAddToCart}
                             disabled={isAddingToCart}
@@ -138,7 +188,7 @@ export default function ProductDetailPage() {
                                     className="focus:outline-none min-w-[150px]"
                                     onClick={() => navigate(`/product/${p.id}`)}
                                 >
-                                    <ProductCard image={p.image || ''} title={p.name} subtitle={p.priceTTC.toFixed(2) + ' €'} />
+                                    <ProductCard image={p.owner === 'VAPOSTORE' ? (p.images?.[0] || '/icons/product.png') : (p.image || '/icons/product.png')} title={p.name} subtitle={p.priceTTC.toFixed(2) + ' €'} />
                                 </button>
                             ))
                         )}

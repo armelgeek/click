@@ -36,7 +36,7 @@ function RecommendedProducts({ cartItems }: { cartItems: CartItemType[] }) {
         </>
     );
 }
-import { useCartActions } from '@/app/cart/hooks/use-cart-actions';
+// import { useCartActions } from '@/app/cart/hooks/use-cart-actions';
 import { CartPageSkeleton } from '@/components/atoms/cart-skeleton';
 
 export default function CartPage() {
@@ -48,11 +48,11 @@ export default function CartPage() {
         createOrder,
         isCreatingOrder,
     } = useCartMutations();
-    const { removeFromCart } = useCartActions();
+    const { removeFromCart } = useCartMutations();
 
     const handleRemove = (itemId: string) => {
         if (window.confirm('Voulez-vous vraiment retirer cet article du panier ?')) {
-            removeFromCart(itemId);
+            removeFromCart.mutate(itemId);
         }
     };
 
