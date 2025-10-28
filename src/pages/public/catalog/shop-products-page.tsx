@@ -100,7 +100,7 @@ export default function ShopProductsPage() {
                   <ProductCard 
                     image={p.image} 
                     title={p.name} 
-                    subtitle={p.price.toFixed(2) + ' €'} 
+                    subtitle={typeof p.price === 'number' ? p.price.toFixed(2) + ' €' : '—'} 
                   />
                 </div>
               ))}
