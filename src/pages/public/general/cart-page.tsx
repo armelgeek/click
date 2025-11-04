@@ -231,8 +231,8 @@ export default function CartPage() {
                     </DialogHeader>
                     <div className="py-2 text-gray-700">Voulez-vous vraiment retirer cet article du panier ?</div>
                     <DialogFooter>
-                        <Button variant="outline" onClick={cancelRemove}>Annuler</Button>
                         <Button variant="destructive" onClick={confirmRemove}>Supprimer</Button>
+                        <Button variant="outline" onClick={cancelRemove}>Fermer</Button>
                     </DialogFooter>
                 </DialogContent>
             </Dialog>

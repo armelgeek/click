@@ -3,7 +3,6 @@ import { createBrowserRouter, RouterProvider } from 'react-router';
 import routes from './routes';
 import { Provider } from './provider';
 import NetworkStatusBanner from './components/atoms/network-status-banner';
-import PWAInstallButton from './components/atoms/pwa-install-button';
 import AgeWarningModal from './components/organisms/age-warning-modal';
 import { ToastContainer } from './components/atoms/toast-container';
 import { CartProvider } from '@/app/cart';

@@ -1,5 +1,17 @@
 import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from '@/shared/components/ui/carousel';
 
+import { useState, useEffect } from 'react';
+import { AddToCartSuccessModal } from '@/components/molecules/add-to-cart-success-modal';
+import { Label } from '@/shared/components/ui/label';
+import { Boxes, Minus, Plus } from 'lucide-react';
+import { Button } from '@/shared/components/ui/button';
+import { useNavigate, useParams } from 'react-router';
+import { useCartMutations } from '@/app/cart';
+import { useProduct, useSimilarProducts } from '@/app/catalog/hooks/use-catalog-api';
+import ProductCard from '@/components/molecules/product-card';
+import { ProductDetailSkeleton } from '@/components/atoms/product-detail-skeleton';
+import { toastService } from '@/hooks/use-toast';
+
 function hasImagesAndOwner(product: unknown): product is { owner: string; images: string[]; name: string } {
     const obj = product as Record<string, unknown>;
     return (
@@ -29,17 +41,6 @@ function getProductMainImage(product: ProductImageInfo): string {
     }
     return img;
 }
-import { useState, useEffect } from 'react';
-import { Label } from '@/shared/components/ui/label';
-import { Boxes, Minus, Plus } from 'lucide-react';
-import { Button } from '@/shared/components/ui/button';
-import { useNavigate, useParams } from 'react-router';
-import { useCartMutations } from '@/app/cart';
-import { useProduct, useSimilarProducts } from '@/app/catalog/hooks/use-catalog-api';
-import ProductCard from '@/components/molecules/product-card';
-import { ProductDetailSkeleton } from '@/components/atoms/product-detail-skeleton';
-import { toastService } from '@/hooks/use-toast';
-
 export default function ProductDetailPage() {
     const { productId } = useParams();
     const { product, loading, error } = useProduct(productId);
@@ -47,6 +48,7 @@ export default function ProductDetailPage() {
     const [qty, setQty] = useState(1);
     const navigate = useNavigate();
     const { addToCart, isAddingToCart } = useCartMutations();
+    const [showCartModal, setShowCartModal] = useState(false);
 
     useEffect(() => {
         window.scrollTo(0, 0);
@@ -67,11 +69,7 @@ export default function ProductDetailPage() {
             },
             {
                 onSuccess: () => {
-                    toastService.addToast({
-                        type: 'success',
-                        message: `${product.name} a été ajouté au panier`,
-                        duration: 3000
-                    });
+                    setShowCartModal(true);
                 },
                 onError: (error) => {
                     toastService.addToast({
@@ -114,7 +112,7 @@ export default function ProductDetailPage() {
                             <CarouselNext />
                         </Carousel>
                     ) : (
-                        <img 
+                        <img
                             src={getProductMainImage(product)}
                             alt={product.name}
                             className="w-full h-full object-contain"
@@ -133,19 +131,19 @@ export default function ProductDetailPage() {
                     </div>
                     <div className="flex items-center gap-3">
                         <div className="flex items-center gap-2 bg-gray-50 rounded-full p-1">
-                            <Button 
-                                variant="ghost" 
-                                size="icon" 
-                                onClick={() => setQty(q => Math.max(1, q - 1))} 
+                            <Button
+                                variant="ghost"
+                                size="icon"
+                                onClick={() => setQty(q => Math.max(1, q - 1))}
                                 className="h-8 w-8 rounded-full hover:bg-white"
                                 disabled={isAddingToCart}
                             >
                                 <Minus className="w-4 h-4" />
                             </Button>
                             <span className="text-lg font-medium w-8 text-center">{qty}</span>
-                            <Button 
-                                variant="ghost" 
-                                size="icon" 
+                            <Button
+                                variant="ghost"
+                                size="icon"
                                 className="h-8 w-8 rounded-full hover:bg-white"
                                 onClick={() => setQty(q => q + 1)}
                                 disabled={isAddingToCart}
@@ -153,8 +151,8 @@ export default function ProductDetailPage() {
                                 <Plus className="w-4 h-4" />
                             </Button>
                         </div>
-                        <Button 
-                            variant="default" 
+                        <Button
+                            variant="default"
                             className="flex-1 h-12 text-base font-medium"
                             onClick={handleAddToCart}
                             disabled={isAddingToCart}
@@ -168,6 +166,13 @@ export default function ProductDetailPage() {
                                 'Ajouter au panier'
                             )}
                         </Button>
+                        <AddToCartSuccessModal
+                            isOpen={showCartModal}
+                            onClose={() => setShowCartModal(false)}
+                            onContinueShopping={() => { setShowCartModal(false); navigate('/shops'); }}
+                            onGoToCart={() => { setShowCartModal(false); navigate('/cart'); }}
+                            productName={product.name}
+                        />
                     </div>
                 </div>
             </div>

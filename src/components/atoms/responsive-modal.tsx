@@ -35,7 +35,7 @@ export default function ResponsiveModal({
 
   return (
     <div 
-      className="fixed inset-0 z-[99999] flex items-center justify-center bg-black/60 p-4"
+      className="fixed inset-0 z-[99999] flex items-center justify-center bg-black/60 px-6 py-4"
       onClick={handleBackdropClick}
     >
       <div
@@ -43,7 +43,6 @@ export default function ResponsiveModal({
           'bg-white rounded-2xl shadow-xl w-full',
           maxWidthClasses[maxWidth],
           'max-h-[90vh] overflow-y-auto',
-          'mx-4 sm:mx-6',
           className
         )}
         onClick={(e) => e.stopPropagation()}
