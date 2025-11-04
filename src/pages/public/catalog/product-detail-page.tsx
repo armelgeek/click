@@ -124,10 +124,12 @@ export default function ProductDetailPage() {
                 </div>
                 <div className="space-y-4">
                     <div>
-                        <h1 className="text-xl font-medium text-gray-900 mb-2">{product.name}</h1>
-                    </div>
-                    <div className="text-3xl font-bold text-vapo-purple-primary">
-                        {product.price.toFixed(2)} €
+                        <div className="text-3xl font-bold text-gray-900 mb-2">{product.price.toFixed(2)} €</div>
+                        <h1 className="text-lg font-semibold text-gray-900 mb-1">{product.name}</h1>
+                        <div className="text-gray-700 text-sm mb-3">
+                            <span className="font-semibold">Description du produit :</span>
+                            &nbsp;{product.description ? product.description : "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Pellentesque ut malesuada orci. Quisque at turpis vel odio fermentum ultricies non sit amet eros. Vivamus vehicula dapibus arcu a cursus."}
+                        </div>
                     </div>
                     <div className="flex items-center gap-3">
                         <div className="flex items-center gap-2 bg-gray-50 rounded-full p-1">
