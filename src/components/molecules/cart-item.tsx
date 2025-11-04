@@ -1,6 +1,5 @@
 import { Button } from '@/shared/components/ui/button';
 import { CartItem as CartItemType } from '@/app/cart/types';
-import Typography from '@/components/atoms/typography';
 import { Trash2 } from 'lucide-react';
 import { formatPrice } from '@/lib/utils';
 
@@ -22,7 +21,7 @@ export default function CartItem({ item, onRemove, onQuantityChange }: CartItemP
   };
 
   return (
-    <div className="flex items-center gap-4 p-2 bg-white rounded-xl border border-gray-400">
+  <div className="flex items-center gap-4 p-2 bg-white rounded-xl border border-gray-400 min-h-[88px]">
       <div className="w-16 h-16 flex-shrink-0 rounded-md overflow-hidden bg-gray-50">
         <img
           src={item.image}
