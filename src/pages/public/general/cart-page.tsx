@@ -188,7 +188,17 @@ export default function CartPage() {
                                 }}
                             />
                         ))}
-                        {/* Section sous-total, frais de livraison et total retirée */}
+                        <div className="border-t pt-4 space-y-2">
+                        
+                            <div className="flex justify-between text-gray-600">
+                                <span>Frais de livraison</span>
+                                <span>{formatPrice(calculateShippingFee())}</span>
+                            </div>
+                            <div className="flex justify-between items-center font-bold text-lg pt-2 border-t">
+                                <span>Total</span>
+                                <span className="text-2xl text-vapo-purple-primary">{formatPrice(calculateSubtotal() + calculateShippingFee())}</span>
+                            </div>
+                        </div>
                     </div>
                     
                     <Button 

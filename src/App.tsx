@@ -38,12 +38,6 @@ function App() {
     if (window.close && window.top === window.self) {
       window.close();
     }
-    document.body.innerHTML = '<div style="display:flex;align-items:center;justify-content:center;height:100vh;"><h2 style="color:#9333ea;font-family:sans-serif;">Accès refusé</h2></div>';
-  };
-
-  if (loading) {
-    return <SplashScreen />;
-  }
 
   return (
     <Provider>
