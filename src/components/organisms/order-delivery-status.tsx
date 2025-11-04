@@ -29,7 +29,7 @@ export default function OrderDeliveryStatus({
   };
 
   return (
-    <div className={`bg-white rounded-2xl p-6 flex flex-col gap-4 ${className}`}>
+    <div className={`bg-white rounded-2xl py-6 flex flex-col gap-4 ${className}`}>
       <div className="text-xl font-semibold mb-2">Suivi de livraison</div>
       
       <div className="flex items-center gap-2 text-gray-800 text-base">

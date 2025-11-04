@@ -22,7 +22,7 @@ export default function CartItem({ item, onRemove, onQuantityChange }: CartItemP
   };
 
   return (
-    <div className="flex items-center gap-4 p-2 bg-white rounded-xl shadow-sm">
+    <div className="flex items-center gap-4 p-2 bg-white rounded-xl border border-gray-400">
       <div className="w-16 h-16 flex-shrink-0 rounded-md overflow-hidden bg-gray-50">
         <img
           src={item.image}
@@ -67,13 +67,6 @@ export default function CartItem({ item, onRemove, onQuantityChange }: CartItemP
           +
         </Button>
       </div>
-      <button
-        onClick={onRemove}
-        className="ml-2 text-gray-400 hover:text-red-500 transition-colors p-2"
-        aria-label="Supprimer l'article"
-      >
-        <Trash2 className="w-5 h-5" />
-      </button>
     </div>
   );
 }
