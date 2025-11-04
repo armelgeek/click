@@ -20,7 +20,7 @@ function RecommendedProducts({ cartItems }: { cartItems: CartItemType[] }) {
     return (
         <div className="bg-white rounded-2xl p-6 mt-4">
             <div className="mb-6">
-                <h2 className="text-xl font-semibold text-gray-800">Vous pourriez aussi aimer</h2>
+                <h2 className="text-xl font-semibold text-gray-800">D'autres produits qui peuvent vous intéresser&nbsp;!</h2>
             </div>
             <div
                 className="flex gap-6 overflow-x-auto scrollbar-thin scrollbar-thumb-vapo-purple-primary scrollbar-track-gray-100 py-1 px-1"

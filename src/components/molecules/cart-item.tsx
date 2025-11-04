@@ -22,58 +22,47 @@ export default function CartItem({ item, onRemove, onQuantityChange }: CartItemP
   };
 
   return (
-    <div className="flex gap-4 p-4 border border-gray-200 rounded-lg hover:border-vapo-purple-primary transition-colors">
-      <div className="w-24 h-24 relative rounded-md overflow-hidden bg-gray-50">
+    <div className="flex items-center gap-4 p-2 bg-white rounded-xl shadow-sm">
+      <div className="w-16 h-16 flex-shrink-0 rounded-md overflow-hidden bg-gray-50">
         <img
           src={item.image}
           alt={item.name}
-          className="object-contain w-full h-full p-2"
+          className="object-contain w-full h-full"
         />
       </div>
-      
-      <div className="flex-1">
-        <div className="flex justify-between items-start">
-          <div>
-            <Typography variant="h3" className="font-medium text-lg">
-              {item.name}
-            </Typography>
-            <Typography className="text-vapo-purple-primary font-semibold text-lg">
-              {formatPrice(item.price)}
-            </Typography>
-          </div>
-          <button
-            onClick={onRemove}
-            className="text-gray-400 hover:text-red-500 transition-colors p-2"
-            aria-label="Supprimer l'article"
-          >
-            <Trash2 className="w-5 h-5" />
-          </button>
+      <div className="flex flex-col flex-1 justify-center min-w-0">
+        <div className="flex items-center gap-2">
+          <span className="font-medium text-base truncate">{item.name}</span>
         </div>
-
-        <div className="mt-4 flex items-center gap-2">
-          <Button
-            size="sm"
-            variant="outline"
-            onClick={handleDecrement}
-            disabled={item.quantity <= 1}
-            className="h-8 w-8 p-0 rounded-full"
-          >
-            -
-          </Button>
-          <span className="w-12 text-center font-medium">{item.quantity}</span>
-          <Button
-            size="sm"
-            variant="outline"
-            onClick={handleIncrement}
-            className="h-8 w-8 p-0 rounded-full"
-          >
-            +
-          </Button>
-          <div className="ml-auto font-medium text-lg">
-            {formatPrice(item.price * item.quantity)}
-          </div>
-        </div>
+        <div className="font-bold text-xl mt-1">{formatPrice(item.price)}</div>
       </div>
+      <div className="flex items-center gap-2 ml-2">
+        <Button
+          size="icon"
+          variant="outline"
+          onClick={handleDecrement}
+          disabled={item.quantity <= 1}
+          className="h-7 w-7 p-0 rounded-full"
+        >
+          -
+        </Button>
+        <span className="w-8 text-center font-medium">{item.quantity}</span>
+        <Button
+          size="icon"
+          variant="outline"
+          onClick={handleIncrement}
+          className="h-7 w-7 p-0 rounded-full"
+        >
+          +
+        </Button>
+      </div>
+      <button
+        onClick={onRemove}
+        className="ml-2 text-gray-400 hover:text-red-500 transition-colors p-2"
+        aria-label="Supprimer l'article"
+      >
+        <Trash2 className="w-5 h-5" />
+      </button>
     </div>
   );
 }
