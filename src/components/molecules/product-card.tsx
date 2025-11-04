@@ -17,7 +17,7 @@ export default function ProductCard({ image, title, subtitle, className = '' }: 
             </div>
             <div className="p-4 flex flex-col">
                 <h3
-                    className="text-gray-800 text-sm font-medium line-clamp-2 min-h-[40px]"
+                    className="text-gray-800 text-sm font-medium line-clamp-3 min-h-[40px]"
                     title={title}
                 >
                     {title}

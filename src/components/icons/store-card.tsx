@@ -17,37 +17,27 @@ export default function StoreCard({ name, image, className = '' }: StoreCardProp
     return (
         <div className={`
             rounded-2xl bg-white flex flex-col items-center justify-between p-4 sm:p-6
-            shadow-sm hover:shadow-md transition-all duration-300
-            hover:bg-gradient-to-b hover:from-white hover:to-gray-50/50
-            group cursor-pointer relative overflow-hidden
-            min-h-[160px]
-            ${className}
+            shadow-sm cursor-pointer min-h-[160px] ${className}
         `}>
-            <div className="absolute inset-x-0 bottom-0 h-1 bg-gradient-to-r from-vapo-purple-primary/0 via-vapo-purple-primary to-vapo-purple-primary/0 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
-            
             <div className="relative w-16 h-16 sm:w-20 sm:h-20">
                 {image ? (
                     <div className="w-full h-full rounded-xl bg-white shadow-sm p-3 flex items-center justify-center">
                         <img 
                             src={image} 
                             alt={name} 
-                            className="w-full h-full object-contain transform group-hover:scale-110 transition-transform duration-300" 
+                            className="w-full h-full object-contain" 
                         />
                     </div>
                 ) : (
                     <div className="w-full h-full rounded-xl bg-white shadow-sm p-3 flex items-center justify-center">
-                        <StoreIcon className="text-vapo-purple-primary w-10 h-10 transform group-hover:scale-110 transition-transform duration-300" />
+                        <StoreIcon className="text-vapo-purple-primary w-10 h-10" />
                     </div>
                 )}
-                
-                <div className="absolute -inset-0.5 bg-gradient-to-br from-vapo-purple-primary/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 rounded-xl blur-sm" />
             </div>
-
-            <div className="text-center mt-4 space-y-2 relative">
+            <div className="text-center mt-4 space-y-2">
                 <h3 className="text-gray-800 font-medium px-2 text-sm sm:text-base leading-tight">
                     {name}
                 </h3>
-        
             </div>
         </div>
     );
