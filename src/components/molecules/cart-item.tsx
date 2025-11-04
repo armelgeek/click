@@ -37,15 +37,26 @@ export default function CartItem({ item, onRemove, onQuantityChange }: CartItemP
         <div className="font-bold text-xl mt-1">{formatPrice(item.price)}</div>
       </div>
       <div className="flex items-center gap-2 ml-2">
-        <Button
-          size="icon"
-          variant="outline"
-          onClick={handleDecrement}
-          disabled={item.quantity <= 1}
-          className="h-7 w-7 p-0 rounded-full"
-        >
-          -
-        </Button>
+        {item.quantity > 1 ? (
+          <Button
+            size="icon"
+            variant="outline"
+            onClick={handleDecrement}
+            className="h-7 w-7 p-0 rounded-full"
+          >
+            -
+          </Button>
+        ) : (
+          <Button
+            size="icon"
+            variant="outline"
+            onClick={onRemove}
+            className="h-7 w-7 p-0 rounded-full"
+            aria-label="Supprimer l'article"
+          >
+            <Trash2 className="w-5 h-5" />
+          </Button>
+        )}
         <span className="w-8 text-center font-medium">{item.quantity}</span>
         <Button
           size="icon"

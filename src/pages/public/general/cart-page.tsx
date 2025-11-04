@@ -6,6 +6,8 @@ import { Button } from '@/shared/components/ui/button';
 import ProductCard from '@/components/molecules/product-card';
 import { useNavigate, Link } from 'react-router';
 import { useCart, useCartMutations } from '@/app/cart';
+import { useState } from 'react';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/shared/components/ui/dialog';
 import { useRecommendedProducts } from '@/app/catalog/hooks/use-recommended-products';
 import { CartItem as CartItemType } from '@/app/cart/types';
 
@@ -59,10 +61,25 @@ export default function CartPage() {
     } = useCartMutations();
     const { removeFromCart } = useCartMutations();
 
+    const [deleteModalOpen, setDeleteModalOpen] = useState(false);
+    const [pendingDeleteId, setPendingDeleteId] = useState<string | null>(null);
+
     const handleRemove = (itemId: string) => {
-        if (window.confirm('Voulez-vous vraiment retirer cet article du panier ?')) {
-            removeFromCart.mutate(itemId);
+        setPendingDeleteId(itemId);
+        setDeleteModalOpen(true);
+    };
+
+    const confirmRemove = () => {
+        if (pendingDeleteId) {
+            removeFromCart.mutate(pendingDeleteId);
         }
+        setDeleteModalOpen(false);
+        setPendingDeleteId(null);
+    };
+
+    const cancelRemove = () => {
+        setDeleteModalOpen(false);
+        setPendingDeleteId(null);
     };
 
     const handleIncrement = (itemId: string) => {
@@ -206,6 +223,19 @@ export default function CartPage() {
             )}
 
             {cart && cart.items.length > 0 && <RecommendedProducts cartItems={cart.items} />}
+
+            <Dialog open={deleteModalOpen} onOpenChange={setDeleteModalOpen}>
+                <DialogContent>
+                    <DialogHeader>
+                        <DialogTitle>Supprimer l’article ?</DialogTitle>
+                    </DialogHeader>
+                    <div className="py-2 text-gray-700">Voulez-vous vraiment retirer cet article du panier ?</div>
+                    <DialogFooter>
+                        <Button variant="outline" onClick={cancelRemove}>Annuler</Button>
+                        <Button variant="destructive" onClick={confirmRemove}>Supprimer</Button>
+                    </DialogFooter>
+                </DialogContent>
+            </Dialog>
         </div>
     );
 }
