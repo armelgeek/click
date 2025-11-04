@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import SplashScreen from './components/atoms/splash-screen';
 import { createBrowserRouter, RouterProvider } from 'react-router';
 import routes from './routes';
 import { Provider } from './provider';
@@ -7,20 +8,25 @@ import AgeWarningModal from './components/organisms/age-warning-modal';
 import { ToastContainer } from './components/atoms/toast-container';
 import { CartProvider } from '@/app/cart';
 const router = createBrowserRouter(routes);
+
 function App() {
   const [, setIsOnline] = useState(navigator.onLine);
   const [ageAccepted, setAgeAccepted] = useState(() => {
     return localStorage.getItem('ageAccepted') === 'true';
   });
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const handleOnline = () => setIsOnline(true);
     const handleOffline = () => setIsOnline(false);
     window.addEventListener('online', handleOnline);
     window.addEventListener('offline', handleOffline);
+    // Simulate DOM/content loading
+    const timeout = setTimeout(() => setLoading(false), 900);
     return () => {
       window.removeEventListener('online', handleOnline);
       window.removeEventListener('offline', handleOffline);
+      clearTimeout(timeout);
     };
   }, []);
 
@@ -34,6 +40,10 @@ function App() {
     }
     document.body.innerHTML = '<div style="display:flex;align-items:center;justify-content:center;height:100vh;"><h2 style="color:#9333ea;font-family:sans-serif;">Accès refusé</h2></div>';
   };
+
+  if (loading) {
+    return <SplashScreen />;
+  }
 
   return (
     <Provider>
