@@ -10,7 +10,6 @@ import { useRecommendedProducts } from '@/app/catalog/hooks/use-recommended-prod
 import { CartItem as CartItemType } from '@/app/cart/types';
 
 function RecommendedProducts({ cartItems }: { cartItems: CartItemType[] }) {
-    // On prend le premier article du panier pour avoir des recommandations basées sur lui
     const firstItem = cartItems[0];
     const { data: recommendedProducts, isLoading } = useRecommendedProducts(firstItem?.productId, !!firstItem);
 
@@ -19,21 +18,31 @@ function RecommendedProducts({ cartItems }: { cartItems: CartItemType[] }) {
     }
 
     return (
-        <>
-            {recommendedProducts.slice(0, 4).map((product) => (
-                <Link 
-                    key={product.id} 
-                    to={`/product/${product.id}`} 
-                    className="no-underline block transform hover:scale-[1.02] transition-transform duration-200"
-                >
-                    <ProductCard
-                        image={product.image || '/icons/product-placeholder.png'}
-                        title={product.name}
-                        subtitle={`${product.priceTTC.toFixed(2)} €`}
-                    />
-                </Link>
-            ))}
-        </>
+        <div className="bg-white rounded-2xl p-6 mt-4">
+            <div className="mb-6">
+                <h2 className="text-xl font-semibold text-gray-800">Vous pourriez aussi aimer</h2>
+            </div>
+            <div
+                className="flex gap-6 overflow-x-auto scrollbar-thin scrollbar-thumb-vapo-purple-primary scrollbar-track-gray-100 py-1 px-1"
+                style={{ scrollSnapType: 'x mandatory', WebkitOverflowScrolling: 'touch' }}
+                tabIndex={0}
+                aria-label="Produits recommandés à faire défiler horizontalement"
+            >
+                {recommendedProducts.slice(0, 4).map((product) => (
+                    <Link 
+                        key={product.id} 
+                        to={`/product/${product.id}`} 
+                        className="no-underline block transform hover:scale-[1.02] transition-transform duration-200"
+                    >
+                        <ProductCard
+                            image={product.image || '/icons/product-placeholder.png'}
+                            title={product.name}
+                            subtitle={`${product.priceTTC.toFixed(2)} €`}
+                        />
+                    </Link>
+                ))}
+            </div>
+        </div>
     );
 }
 // import { useCartActions } from '@/app/cart/hooks/use-cart-actions';
@@ -196,24 +205,7 @@ export default function CartPage() {
                 </>
             )}
 
-            {cart && cart.items.length > 0 && (
-                <div className="bg-white rounded-2xl p-6 mt-4">
-                    <div className="flex items-center justify-between mb-6">
-                        <h2 className="text-xl font-semibold text-gray-800">Vous pourriez aussi aimer</h2>
-                        <Link to="/catalog" className="text-sm text-vapo-purple-primary hover:underline">
-                            Voir plus
-                        </Link>
-                    </div>
-                    <div
-                        className="flex gap-6 overflow-x-auto scrollbar-thin scrollbar-thumb-vapo-purple-primary scrollbar-track-gray-100 py-1 px-1"
-                        style={{ scrollSnapType: 'x mandatory', WebkitOverflowScrolling: 'touch' }}
-                        tabIndex={0}
-                        aria-label="Produits recommandés à faire défiler horizontalement"
-                    >
-                        <RecommendedProducts cartItems={cart.items} />
-                    </div>
-                </div>
-            )}
+            {cart && cart.items.length > 0 && <RecommendedProducts cartItems={cart.items} />}
         </div>
     );
 }
