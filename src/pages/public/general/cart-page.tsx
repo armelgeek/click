@@ -159,7 +159,7 @@ export default function CartPage() {
                 </div>
             ) : (
                 <>
-                    <div className="bg-white rounded-2xl p-6 flex flex-col gap-4">
+                    <div className="bg-white rounded-2xl py-6 flex flex-col gap-4">
                         {error && (
                             <div className="p-4 bg-red-50 text-red-600 rounded-lg">
                                 Une erreur est survenue lors de la mise à jour du panier.
