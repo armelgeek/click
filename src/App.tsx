@@ -38,6 +38,7 @@ function App() {
     if (window.close && window.top === window.self) {
       window.close();
     }
+  }
 
   return (
     <Provider>
