@@ -153,7 +153,7 @@ export default function CartPage() {
             {!cart || cart.items.length === 0 ? (
                 <div className="bg-white rounded-2xl p-6 text-center">
                     <div className="text-gray-500 text-lg mb-4">Votre panier est vide</div>
-                    <Button variant="vapo" onClick={() => navigate('/shops')}>
+                    <Button variant="vapo" onClick={() => navigate('/')}>
                         Continuer mes achats
                     </Button>
                 </div>
@@ -188,20 +188,7 @@ export default function CartPage() {
                                 }}
                             />
                         ))}
-                        <div className="border-t pt-4 space-y-2">
-                            <div className="flex justify-between text-gray-600">
-                                <span>Sous-total</span>
-                                <span>{formatPrice(calculateSubtotal())}</span>
-                            </div>
-                            <div className="flex justify-between text-gray-600">
-                                <span>Frais de livraison</span>
-                                <span>{formatPrice(calculateShippingFee())}</span>
-                            </div>
-                            <div className="flex justify-between items-center font-bold text-lg pt-2 border-t">
-                                <span>Total</span>
-                                <span className="text-2xl text-vapo-purple-primary">{formatPrice(calculateSubtotal() + calculateShippingFee())}</span>
-                            </div>
-                        </div>
+                        {/* Section sous-total, frais de livraison et total retirée */}
                     </div>
                     
                     <Button 

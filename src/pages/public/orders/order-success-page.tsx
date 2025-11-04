@@ -40,7 +40,7 @@ export default function OrderSuccessPage() {
                     Vous pouvez suivre votre commande en cliquant sur <a href={`/orders/${order.id}`} className="text-vapo-purple-primary underline">ce lien</a>.
                 </div>
                 <div className="text-center text-gray-700 mb-6">Vapostore vous remercie ! À la prochaine.</div>
-                <Link to="/shops" className="flex items-center gap-2 text-vapo-purple-primary font-medium">
+                <Link to="/" className="flex items-center gap-2 text-vapo-purple-primary font-medium">
                     <span className="text-xl">&#x2039;</span> Retourner aux magasins
                 </Link>
             </div>
