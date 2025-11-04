@@ -21,7 +21,7 @@ export default function StoreCard({ name, image, className = '' }: StoreCardProp
         `}>
             <div className="relative w-16 h-16 sm:w-20 sm:h-20">
                 {image ? (
-                    <div className="w-full h-full rounded-xl bg-white shadow-sm p-3 flex items-center justify-center">
+                    <div className="w-full h-full rounded-xl bg-white  p-3 flex items-center justify-center">
                         <img 
                             src={image} 
                             alt={name} 
@@ -29,7 +29,7 @@ export default function StoreCard({ name, image, className = '' }: StoreCardProp
                         />
                     </div>
                 ) : (
-                    <div className="w-full h-full rounded-xl bg-white shadow-sm p-3 flex items-center justify-center">
+                    <div className="w-full h-full rounded-xl bg-white p-3 flex items-center justify-center">
                         <StoreIcon className="text-vapo-purple-primary w-10 h-10" />
                     </div>
                 )}
