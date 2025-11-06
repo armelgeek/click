@@ -156,7 +156,7 @@ export default function ProductDetailPage() {
                             </Button>
                         </div>
                         <Button
-                            variant="default"
+                            variant="vapo"
                             className="flex-1 h-12 text-base font-medium"
                             onClick={handleAddToCart}
                             disabled={isAddingToCart}
