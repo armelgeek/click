@@ -190,7 +190,7 @@ export default function ProductDetailPage() {
                             {similarProducts.map(p => (
                                 <div
                                     key={p.id}
-                                    className="min-w-[200px] snap-start cursor-pointer"
+                                    className="min-w-[140px] snap-start cursor-pointer"
                                     onClick={() => navigate(`/product/${p.id}`)}
                                 >
                                     <ProductCard 

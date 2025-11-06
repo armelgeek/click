@@ -45,7 +45,7 @@ function App() {
         <NetworkStatusBanner />
         <AgeWarningModal open={!ageAccepted} onAccept={handleAccept} onQuit={handleQuit} />
         <ToastContainer />
-        <div className='bg-[#ebf2eb]'>
+        <div className='bg-[#e8f1e8]'>
           <RouterProvider router={router} />
         </div>
       </CartProvider>
