@@ -16,7 +16,7 @@ function StoreIcon({ className = '' }: { className?: string }) {
 export default function StoreCard({ name, image, className = '' }: StoreCardProps) {
     return (
         <div className={`
-            rounded-2xl bg-white flex flex-col items-center pb-6 justify-between
+            rounded-2xl bg-white flex flex-col items-center justify-between  pb-6
             shadow-sm cursor-pointer  ${className}
         `}>
             <div className="relative w-16 h-16 sm:w-20 sm:h-20">
@@ -34,8 +34,8 @@ export default function StoreCard({ name, image, className = '' }: StoreCardProp
                     </div>
                 )}
             </div>
-            <div className="text-center mt-2 space-y-2">
-                <h3 className="text-gray-800 font-medium px-2 h-5 uppercase text-sm sm:text-base leading-tight">
+            <div className="text-center mt-4 space-y-2">
+                <h3 className="text-gray-800 font-semibold h-auto uppercase px-2 text-sm leading-tight line-clamp-2 text-ellipsis">
                     {name}
                 </h3>
             </div>

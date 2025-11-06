@@ -5,16 +5,25 @@ import Typography from '@/components/atoms/typography';
 import { Button } from '@/shared/components/ui/button';
 import { useShop, useShopCategories, useShopProducts } from '@/app/catalog/hooks/use-catalog';
 import { ShopProductsPageSkeleton } from '@/components/atoms/shop-products-skeleton';
+import { InfiniteScrollList } from '@/components/molecules/infinite-scroll-list';
 import { ProductCardSkeleton } from '@/components/atoms/skeleton';
 
 export default function ShopProductsPage() {
   const navigate = useNavigate();
   const { shopId } = useParams<{ shopId: string }>();
   const [selectedCategoryId, setSelectedCategoryId] = useState<string | undefined>();
+  const [displayedProductsCount, setDisplayedProductsCount] = useState(12);
 
   const { shop, loading: shopLoading, error: shopError } = useShop(shopId);
   const { categories, loading: categoriesLoading, error: categoriesError } = useShopCategories(shopId);
   const { products, loading: productsLoading, error: productsError } = useShopProducts(shopId, selectedCategoryId);
+
+  const displayedProducts = products.slice(0, displayedProductsCount);
+  const hasMoreProducts = displayedProductsCount < products.length;
+
+  const loadMoreProducts = () => {
+    setDisplayedProductsCount(prev => prev + 12);
+  };
 
   if (shopLoading || categoriesLoading) {
     return <ShopProductsPageSkeleton />;
@@ -89,22 +98,29 @@ export default function ShopProductsPage() {
                     <ProductCardSkeleton key={i} />
                 ))}
             </div>
-          ) : products.length === 0 ? (
-            <div className="text-center py-8 text-gray-500">
-              Aucun produit trouvé pour cette sélection
-            </div>
           ) : (
-            <div className="grid grid-cols-3 gap-4 my-4">
-              {products.map((p) => (
-                <div key={p.id} onClick={() => navigate(`/product/${p.id}`)} style={{cursor:'pointer'}}>
+            <InfiniteScrollList
+              items={displayedProducts}
+              renderItem={(product) => (
+                <div onClick={() => navigate(`/product/${product.id}`)} style={{cursor:'pointer'}}>
                   <ProductCard 
-                    image={p.image} 
-                    title={p.name} 
-                    subtitle={typeof p.price === 'number' ? p.price.toFixed(2) + ' €' : '—'} 
+                    image={product.image} 
+                    title={product.name} 
+                    subtitle={typeof product.price === 'number' ? product.price.toFixed(2) + ' €' : '—'} 
                   />
                 </div>
-              ))}
-            </div>
+              )}
+              onLoadMore={loadMoreProducts}
+              hasMore={hasMoreProducts}
+              isLoading={false}
+              gridCols={3}
+              keyExtractor={(product) => product.id}
+              emptyComponent={
+                <div className="text-center py-8 text-gray-500">
+                  Aucun produit trouvé pour cette sélection
+                </div>
+              }
+            />
           )}
         </div>
       </main>

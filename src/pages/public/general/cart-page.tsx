@@ -109,15 +109,16 @@ export default function CartPage() {
     const handleCheckout = () => {
         if (!cart) return;
         
+        // TODO: Implement checkout flow with address and payment selection
+        // For now, this is a placeholder that will be replaced with proper checkout
         createOrder.mutate(
             {
-                cartId: cart.id,
-                deliveryAddress: '123 Rue de la Paix, 75001 Paris',
-                paymentMethod: 'card',
+                addressId: 'temp-address-id', // Will be selected in checkout flow
+                paymentMethodId: 'temp-payment-id', // Will be selected in checkout flow
                 notes: 'Livraison rapide',
             },
             {
-                onSuccess: (response) => {
+                onSuccess: (response: { order: { id: string } }) => {
                     navigate(`/order-success/${response.order.id}`);
                 },
             }

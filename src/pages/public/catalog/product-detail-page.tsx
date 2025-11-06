@@ -11,6 +11,7 @@ import { useProduct, useSimilarProducts } from '@/app/catalog/hooks/use-catalog-
 import ProductCard from '@/components/molecules/product-card';
 import { ProductDetailSkeleton } from '@/components/atoms/product-detail-skeleton';
 import { toastService } from '@/hooks/use-toast';
+import { HorizontalScrollContainer } from '@/components/molecules/horizontal-scroll-container';
 
 function hasImagesAndOwner(product: unknown): product is { owner: string; images: string[]; name: string } {
     const obj = product as Record<string, unknown>;
@@ -102,7 +103,7 @@ export default function ProductDetailPage() {
                                         <img
                                             src={typeof img === 'string' && (img.startsWith('http://') || img.startsWith('https://')) ? img : '/icons/product.png'}
                                             alt={product.name + ' ' + (idx + 1)}
-                                            className="object-contain w-full h-full max-h-[320px] rounded-lg border"
+                                            className="object-contain w-full h-full max-h-80 rounded-lg border"
                                             onError={(e) => { e.currentTarget.src = '/icons/product.png'; }}
                                         />
                                     </CarouselItem>
@@ -181,25 +182,26 @@ export default function ProductDetailPage() {
                 <div className="bg-white rounded-2xl p-6 mt-4">
                     <div className="flex items-center justify-between mb-6">
                         <h2 className="text-xl font-semibold text-gray-800">Vous pourriez aussi aimer</h2>
-                        <button onClick={() => navigate('/catalog')} className="text-sm text-vapo-purple-primary hover:underline">
-                            Voir plus
-                        </button>
                     </div>
-                    <div className="flex gap-6 overflow-x-auto scrollbar-hide pb-4 -mx-2 px-2">
-                        {similarLoading ? (
-                            <div className="text-gray-500">Chargement des produits similaires...</div>
-                        ) : (
-                            similarProducts.map(p => (
-                                <button
+                    {similarLoading ? (
+                        <div className="text-gray-500">Chargement des produits similaires...</div>
+                    ) : (
+                        <HorizontalScrollContainer className="-mx-2 px-2">
+                            {similarProducts.map(p => (
+                                <div
                                     key={p.id}
-                                    className="focus:outline-none min-w-[150px]"
+                                    className="min-w-[200px] snap-start cursor-pointer"
                                     onClick={() => navigate(`/product/${p.id}`)}
                                 >
-                                    <ProductCard image={p.owner === 'VAPOSTORE' ? (p.images?.[0] || '/icons/product.png') : (p.image || '/icons/product.png')} title={p.name} subtitle={p.priceTTC.toFixed(2) + ' €'} />
-                                </button>
-                            ))
-                        )}
-                    </div>
+                                    <ProductCard 
+                                        image={p.owner === 'VAPOSTORE' ? (p.images?.[0] || '/icons/product.png') : (p.image || '/icons/product.png')} 
+                                        title={p.name} 
+                                        subtitle={p.priceTTC.toFixed(2) + ' €'} 
+                                    />
+                                </div>
+                            ))}
+                        </HorizontalScrollContainer>
+                    )}
                 </div>
             )}
         </div>

@@ -1,5 +1,5 @@
 import { useQuery, useQueryClient } from '@tanstack/react-query';
-import { CartAPI } from '../api/cart-api';
+import { OrdersAPI } from '@/app/orders/api/orders-api';
 import { orderKeys, CART_STALE_TIME, CART_CACHE_TIME } from '../config';
 
 /**
@@ -10,7 +10,10 @@ export const useOrders = () => {
 
   const query = useQuery({
     queryKey: orderKeys.lists(),
-    queryFn: () => CartAPI.getOrders(),
+    queryFn: async () => {
+      const response = await OrdersAPI.getOrders({ page: 1, limit: 100 });
+      return { orders: response.data };
+    },
     staleTime: CART_STALE_TIME.ORDERS,
     gcTime: CART_CACHE_TIME.ORDERS,
   });
@@ -37,7 +40,10 @@ export const useOrder = (orderId?: string) => {
 
   const query = useQuery({
     queryKey: orderKeys.detail(orderId || ''),
-    queryFn: () => CartAPI.getOrder(orderId!),
+    queryFn: async () => {
+      const order = await OrdersAPI.getOrderById(orderId!);
+      return { order };
+    },
     enabled: !!orderId,
     staleTime: CART_STALE_TIME.ORDERS,
     gcTime: CART_CACHE_TIME.ORDERS,

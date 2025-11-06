@@ -1,5 +1,3 @@
-import React from 'react';
-
 export default function SplashScreen() {
   return (
     <div className="fixed inset-0 z-[999999] flex items-center justify-center bg-white">

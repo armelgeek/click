@@ -107,10 +107,9 @@ export class CatalogAPI {
   }
 
   static async getCategoriesByShop(shopId: string): Promise<CategoriesResponse> {
-    await delay(200);
-    const categories = mockCategories.filter(cat => cat.shopId === shopId);
+    const response = await apiClient.get(API_ENDPOINTS.categories.list);
     return {
-      categories
+      categories: response.data || null
     };
   }
 
@@ -142,5 +141,16 @@ export class CatalogAPI {
   static async getShopById(shopId: string): Promise<Shop | null> {
     const response = await apiClient.get(API_ENDPOINTS.stores.detail(shopId));
     return response.data || null;
+  }
+
+  static async getProductStock(productId: string): Promise<{
+    productId: string;
+    storeId: string;
+    quantity: number;
+    inStock: boolean;
+    status: string;
+  }> {
+    const response = await apiClient.get(API_ENDPOINTS.products.stock(productId));
+    return response.data;
   }
 }

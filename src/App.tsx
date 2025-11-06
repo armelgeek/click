@@ -1,5 +1,4 @@
 import { useEffect, useState } from 'react';
-import SplashScreen from './components/atoms/splash-screen';
 import { createBrowserRouter, RouterProvider } from 'react-router';
 import routes from './routes';
 import { Provider } from './provider';
@@ -14,7 +13,7 @@ function App() {
   const [ageAccepted, setAgeAccepted] = useState(() => {
     return localStorage.getItem('ageAccepted') === 'true';
   });
-  const [loading, setLoading] = useState(true);
+  const [, setLoading] = useState(true);
 
   useEffect(() => {
     const handleOnline = () => setIsOnline(true);
@@ -41,7 +40,6 @@ function App() {
   }
 
   return (
-
     <Provider>
       <CartProvider>
         <NetworkStatusBanner />

@@ -36,7 +36,7 @@ export default function OrderSuccessPage() {
                 <div className="text-2xl font-bold text-vapo-purple-primary text-center mb-2">Commande fait avec succès</div>
                 <div className="text-center text-gray-800 mb-2">
                     Votre commande numéro <span className="font-bold">{order.id}</span> a été effectuée avec succès.<br />
-                    Total: <span className="font-bold">{order.total.toFixed(2)} €</span><br />
+                    Total: <span className="font-bold">{order.totalAmount?.toFixed(2) ?? '0.00'} €</span><br />
                     Vous pouvez suivre votre commande en cliquant sur <a href={`/orders/${order.id}`} className="text-vapo-purple-primary underline">ce lien</a>.
                 </div>
                 <div className="text-center text-gray-700 mb-6">Vapostore vous remercie ! À la prochaine.</div>

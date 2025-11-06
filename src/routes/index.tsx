@@ -16,6 +16,8 @@ import IdentityVerificationPage from "@/pages/public/auth/identity-verification-
 import { LoginPage } from "@/pages/public/auth/login-page";
 import CartPage from '@/pages/public/general/cart-page';
 import DeliveryPage from '@/pages/public/general/delivery-page';
+import SearchResultsPage from '@/pages/public/general/search-results-page';
+import CategoryProductsPage from '@/pages/public/catalog/category-products-page';
 import OrderSuccessPage from '@/pages/public/orders/order-success-page';
 import OrderTrackingPage from '@/pages/public/orders/order-tracking-page';
 import OrderProofPage from '@/pages/public/orders/order-proof-page';
@@ -50,6 +52,14 @@ const publicRoutes: RouteObject[] = [
     {
         path: '/delivery',
         element: <DeliveryPage />,
+    },
+    {
+        path: '/search-results',
+        element: <SearchResultsPage />,
+    },
+    {
+        path: '/category/:categoryId',
+        element: <CategoryProductsPage />,
     },
     {
         path: '/order-success',
