@@ -1,10 +1,9 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { CartAPI } from '../api/cart-api';
-import { OrdersAPI } from '@/app/orders/api/orders-api';
 import { useCartStore } from '../store';
 import { CartResponse } from '../types';
 import { cartKeys, CART_STALE_TIME, CART_CACHE_TIME } from '../config';
-import { AddToCartPayload, UpdateCartItemPayload } from '../types';
+import { AddToCartPayload, UpdateCartItemPayload, CreateOrderPayload } from '../types';
 
 
 export const useCart = () => {
@@ -122,11 +121,9 @@ export const useCartMutations = () => {
       if (data?.cart) {
         useCartStore.getState().setCartData(data.cart);
         try {
-          const updatedAt = data.cart.updatedAt || new Date().toISOString();
+          const updatedAt = (data.cart as any).updatedAt || new Date().toISOString();
           localStorage.setItem('cart-local-updatedAt', updatedAt);
-        } catch (e) {
-          console.warn('Failed to save cart updatedAt:', e);
-        }
+        } catch (e) {}
       }
     },
     onError: (error) => {
@@ -135,8 +132,7 @@ export const useCartMutations = () => {
   });
 
   const createOrder = useMutation({
-    mutationFn: (payload: { addressId: string; paymentMethodId: string; notes?: string }) => 
-      OrdersAPI.createOrder(payload),
+    mutationFn: (payload: CreateOrderPayload) => CartAPI.createOrder(payload),
     onSuccess: () => {
       // Order created, invalidate cart and orders so data is refreshed from the server
       queryClient.invalidateQueries({ queryKey: cartKeys.cart() });

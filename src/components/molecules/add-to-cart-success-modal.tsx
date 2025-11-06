@@ -39,9 +39,9 @@ export function AddToCartSuccessModal({
                             Continuer mes achats
                         </Button>
                         <Button
-                            variant="default"
+                            variant="vapo"
                             onClick={onGoToCart}
-                            className="rounded-lg bg-clicknvape-green text-white px-6 py-2 font-medium shadow-sm hover:bg-clicknvape-green/90"
+                            className="rounded-lg  text-white px-6 py-2 font-medium shadow-sm hover:bg-clicknvape-green/90"
                         >
                             Voir mon panier
                         </Button>
