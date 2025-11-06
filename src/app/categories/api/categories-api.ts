@@ -1,5 +1,23 @@
+
 import { apiClient, API_ENDPOINTS } from '@/shared/config/api.config';
 import { Category, PaginationParams, PaginatedResponse } from '@/shared/types/api.types';
+
+// Typage strict pour le produit tel que renvoyé par l'API
+interface CategoryProductApi {
+  id: string;
+  name: string;
+  priceTTC?: number;
+  price?: number;
+  image?: string;
+}
+
+// Typage pour le front (produit formaté)
+export interface CategoryProduct {
+  id: string;
+  name: string;
+  price: number;
+  image?: string;
+}
 
 export class CategoriesAPI {
   
@@ -18,23 +36,22 @@ export class CategoriesAPI {
   }
 
   static async getProductsByCategory(
-    categoryId: string, 
+    categoryId: string,
     params?: PaginationParams
-  ): Promise<PaginatedResponse<{ id: string; name: string; price: number; image?: string }>> {
-    const response = await apiClient.get<PaginatedResponse<{
-      priceTTC: number; id: string; name: string; price?: number; image?: string 
-    }>>(
+  ): Promise<PaginatedResponse<CategoryProduct>> {
+    const response = await apiClient.get<PaginatedResponse<CategoryProductApi>>(
       API_ENDPOINTS.categories.products(categoryId),
       { params }
     );
 
-    const { data: items = [], total, page, limit, totalPages } = response.data;
+    const { data: items = [], meta } = response.data;
+    const { total, page, limit, totalPages } = meta;
 
-    const formattedData = items.map(item => ({
+    const formattedData: CategoryProduct[] = items.map((item) => ({
       id: item.id,
       name: item.name,
       image: item.image,
-      price: (item.priceTTC ?? item.price ?? 0) as number
+      price: typeof item.priceTTC === 'number' ? item.priceTTC : (item.price ?? 0),
     }));
 
     return {
@@ -42,7 +59,7 @@ export class CategoriesAPI {
       total,
       page,
       limit,
-      totalPages
+      totalPages,
     };
   }
 }

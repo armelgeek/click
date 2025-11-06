@@ -3,7 +3,8 @@ import { CartAPI } from '../api/cart-api';
 import { useCartStore } from '../store';
 import { CartResponse } from '../types';
 import { cartKeys, CART_STALE_TIME, CART_CACHE_TIME } from '../config';
-import { AddToCartPayload, UpdateCartItemPayload, CreateOrderPayload } from '../types';
+import { UpdateCartItemPayload, CreateOrderPayload } from '../types';
+import { AddToCartPayloadExtended } from '../api/cart-api';
 
 
 export const useCart = () => {
@@ -36,7 +37,7 @@ export const useCartMutations = () => {
   const queryClient = useQueryClient();
 
   const addToCart = useMutation({
-    mutationFn: (payload: AddToCartPayload) => CartAPI.addToCart(payload),
+    mutationFn: (payload: AddToCartPayloadExtended) => CartAPI.addToCart(payload),
   onSuccess: (data: CartResponse) => {
       // update react-query cache
       queryClient.invalidateQueries({ queryKey: cartKeys.cart() });

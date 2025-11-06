@@ -67,6 +67,9 @@ export default function ProductDetailPage() {
             {
                 productId: product.id,
                 quantity: qty,
+                name: product.name,
+                price: product.price,
+                image: getProductMainImage(product)
             },
             {
                 onSuccess: () => {

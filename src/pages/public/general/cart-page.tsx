@@ -11,10 +11,11 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '
 import { useRecommendedProducts } from '@/app/catalog/hooks/use-recommended-products';
 import { CartItem as CartItemType } from '@/app/cart/types';
 
+import { HorizontalScrollContainer } from '@/components/molecules/horizontal-scroll-container';
+
 function RecommendedProducts({ cartItems }: { cartItems: CartItemType[] }) {
     const firstItem = cartItems[0];
     const { data: recommendedProducts, isLoading } = useRecommendedProducts(firstItem?.productId, !!firstItem);
-
     if (isLoading || !recommendedProducts?.length) {
         return null;
     }
@@ -24,17 +25,13 @@ function RecommendedProducts({ cartItems }: { cartItems: CartItemType[] }) {
             <div className="mb-6">
                 <h2 className="text-xl font-semibold text-gray-800">D'autres produits qui peuvent vous intéresser&nbsp;!</h2>
             </div>
-            <div
-                className="flex gap-6 overflow-x-auto scrollbar-thin scrollbar-thumb-vapo-purple-primary scrollbar-track-gray-100 py-1 px-1"
-                style={{ scrollSnapType: 'x mandatory', WebkitOverflowScrolling: 'touch' }}
-                tabIndex={0}
-                aria-label="Produits recommandés à faire défiler horizontalement"
-            >
-                {recommendedProducts.slice(0, 4).map((product) => (
-                    <Link 
-                        key={product.id} 
-                        to={`/product/${product.id}`} 
-                        className="no-underline block transform hover:scale-[1.02] transition-transform duration-200"
+            <HorizontalScrollContainer className="py-1 px-1 gap-6" showArrows scrollAmount={220}>
+                {recommendedProducts.slice(0, 8).map((product) => (
+                    <Link
+                        key={product.id}
+                        to={`/product/${product.id}`}
+                        className="no-underline block transform hover:scale-[1.02] transition-transform duration-200 min-w-[140px]  snap-start"
+                        tabIndex={0}
                     >
                         <ProductCard
                             image={product.image || '/icons/product-placeholder.png'}
@@ -43,7 +40,7 @@ function RecommendedProducts({ cartItems }: { cartItems: CartItemType[] }) {
                         />
                     </Link>
                 ))}
-            </div>
+            </HorizontalScrollContainer>
         </div>
     );
 }

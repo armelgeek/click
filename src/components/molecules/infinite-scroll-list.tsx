@@ -50,7 +50,7 @@ export function InfiniteScrollList<T>({
   }[gridCols];
 
   const defaultLoadingComponent = (
-    <div className="flex items-center justify-center py-8">
+    <div className="flex items-center justify-center mb-5 py-8">
       <Loader2 className="w-8 h-8 animate-spin text-vapo-purple-primary" />
     </div>
   );

@@ -1,12 +1,12 @@
 import { useCartStore } from '../store';
 import { useCartMutations } from './use-cart';
-import { AddToCartPayload } from '../types';
+import { AddToCartPayloadExtended } from '../api/cart-api';
 
 export function useCartActions() {
   const { addToCart, updateCartItem, removeFromCart, clearCart } = useCartMutations();
   const cartStore = useCartStore();
 
-  const handleAddToCart = async (payload: AddToCartPayload) => {
+  const handleAddToCart = async (payload: AddToCartPayloadExtended) => {
     try {
       const { cart } = await addToCart.mutateAsync(payload);
       cartStore.setCartData(cart);

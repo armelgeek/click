@@ -2,12 +2,19 @@ import {
   Store, 
   Product, 
   StoresResponse, 
-  ProductsResponse,
   ShopsResponse, 
   CategoriesResponse, 
   LegacyProductsResponse,
   Shop
 } from '../types';
+// Typage paginé pour les produits (infinite scroll)
+export interface PaginatedProductsResponse {
+  data: Product[];
+  total: number;
+  page: number;
+  limit: number;
+  totalPages: number;
+}
 import { apiClient, API_ENDPOINTS } from '@/shared/config/api.config';
 import { mockCategories } from '../data/mock-data';
 
@@ -51,8 +58,8 @@ export class CatalogAPI {
   static async getStoreProducts(
     storeId: string, 
     params: ProductsQueryParams = {}
-  ): Promise<ProductsResponse> {
-    const response = await apiClient.get<ProductsResponse>(
+  ): Promise<PaginatedProductsResponse> {
+    const response = await apiClient.get<any>(
       API_ENDPOINTS.stores.products(storeId),
       {
         params: {
@@ -62,20 +69,37 @@ export class CatalogAPI {
         },
       }
     );
-    return response.data;
+    // On suppose que la réponse backend contient { data, meta }
+    const { data = [], meta } = response.data;
+    return {
+      data: data.map((item: Product) => ({
+          ...item,
+          image: '/icons/product.png',
+          price: item.priceTTC ?? 0,
+      })),
+      total: meta?.total ?? data.length,
+      page: meta?.page ?? 1,
+      limit: meta?.limit ?? 20,
+      totalPages: meta?.totalPages ?? 1,
+    };
   }
 
-  static async getAllProducts(params: ProductsQueryParams = {}): Promise<ProductsResponse> {
-
-
-    const response = await apiClient.get<ProductsResponse>(API_ENDPOINTS.products.list, {
+  static async getAllProducts(params: ProductsQueryParams = {}): Promise<PaginatedProductsResponse> {
+    const response = await apiClient.get<any>(API_ENDPOINTS.products.list, {
       params: {
         page: params.page || 1,
         limit: params.limit || 20,
         search: params.search,
       },
     });
-    return response.data;
+    const { data = [], meta } = response.data;
+    return {
+      data,
+      total: meta?.total ?? data.length,
+      page: meta?.page ?? 1,
+      limit: meta?.limit ?? 20,
+      totalPages: meta?.totalPages ?? 1,
+    };
   }
 
   static async getProductById(productId: string): Promise<Product> {
@@ -117,7 +141,6 @@ export class CatalogAPI {
     shopId: string, 
     categoryId?: string
   ): Promise<LegacyProductsResponse> {
-    await delay(250);
 
    const response = await apiClient.get(API_ENDPOINTS.stores.by(shopId, categoryId || ''));
     if(response.data && Array.isArray(response.data.data)) {

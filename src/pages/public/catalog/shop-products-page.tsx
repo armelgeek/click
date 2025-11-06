@@ -1,9 +1,10 @@
 import { useNavigate, useParams } from 'react-router';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import ProductCard from '@/components/molecules/product-card';
 import Typography from '@/components/atoms/typography';
 import { Button } from '@/shared/components/ui/button';
-import { useShop, useShopCategories, useShopProducts } from '@/app/catalog/hooks/use-catalog';
+import { useShop, useShopCategories } from '@/app/catalog/hooks/use-catalog';
+import { CatalogAPI, PaginatedProductsResponse } from '@/app/catalog/api/catalog-api';
 import { ShopProductsPageSkeleton } from '@/components/atoms/shop-products-skeleton';
 import { InfiniteScrollList } from '@/components/molecules/infinite-scroll-list';
 import { ProductCardSkeleton } from '@/components/atoms/skeleton';
@@ -11,29 +12,64 @@ import { ProductCardSkeleton } from '@/components/atoms/skeleton';
 export default function ShopProductsPage() {
   const navigate = useNavigate();
   const { shopId } = useParams<{ shopId: string }>();
+
   const [selectedCategoryId, setSelectedCategoryId] = useState<string | undefined>();
-  const [displayedProductsCount, setDisplayedProductsCount] = useState(12);
+  const [products, setProducts] = useState<any[]>([]);
+  const [page, setPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
+  const [isLoading, setIsLoading] = useState(false);
+  const [isLoadingMore, setIsLoadingMore] = useState(false);
 
   const { shop, loading: shopLoading, error: shopError } = useShop(shopId);
   const { categories, loading: categoriesLoading, error: categoriesError } = useShopCategories(shopId);
-  const { products, loading: productsLoading, error: productsError } = useShopProducts(shopId, selectedCategoryId);
 
-  const displayedProducts = products.slice(0, displayedProductsCount);
-  const hasMoreProducts = displayedProductsCount < products.length;
+  // Reset products when shop or category changes
+  useEffect(() => {
+    setProducts([]);
+    setPage(1);
+    setTotalPages(1);
+  }, [shopId, selectedCategoryId]);
 
+  // Fetch products page by page
+  useEffect(() => {
+    if (!shopId) return;
+    const fetchProducts = async () => {
+      if (page === 1) setIsLoading(true);
+      else setIsLoadingMore(true);
+      try {
+        const res: PaginatedProductsResponse = await CatalogAPI.getStoreProducts(shopId, {
+          page,
+          limit: 12,
+          // Optionally: search, categoryId
+        });
+        setProducts(prev => page === 1 ? res.data : [...prev, ...res.data]);
+        setTotalPages(res.totalPages || 1);
+      } catch (e) {
+        // Optionally: set error
+      } finally {
+        setIsLoading(false);
+        setIsLoadingMore(false);
+      }
+    };
+    fetchProducts();
+  }, [shopId, selectedCategoryId, page]);
+
+  const hasMoreProducts = page < totalPages && !isLoading && !isLoadingMore;
   const loadMoreProducts = () => {
-    setDisplayedProductsCount(prev => prev + 12);
+    if (!isLoading && !isLoadingMore && page < totalPages) {
+      setPage(prev => prev + 1);
+    }
   };
 
   if (shopLoading || categoriesLoading) {
     return <ShopProductsPageSkeleton />;
   }
 
-  if (shopError || categoriesError || productsError) {
+  if (shopError || categoriesError) {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <div className="text-red-500">
-          Erreur: {shopError || categoriesError || productsError}
+          Erreur: {shopError || categoriesError}
         </div>
       </div>
     );
@@ -92,27 +128,27 @@ export default function ShopProductsPage() {
             )}
           </div>
           
-          {productsLoading ? (
+          {isLoading && products.length === 0 ? (
             <div className="grid grid-cols-3 gap-4 my-4">
-                {Array.from({ length: 9 }).map((_, i) => (
-                    <ProductCardSkeleton key={i} />
-                ))}
+              {Array.from({ length: 9 }).map((_, i) => (
+                <ProductCardSkeleton key={i} />
+              ))}
             </div>
           ) : (
             <InfiniteScrollList
-              items={displayedProducts}
+              items={products}
               renderItem={(product) => (
-                <div onClick={() => navigate(`/product/${product.id}`)} style={{cursor:'pointer'}}>
-                  <ProductCard 
-                    image={product.image} 
-                    title={product.name} 
-                    subtitle={typeof product.price === 'number' ? product.price.toFixed(2) + ' €' : '—'} 
+                <div onClick={() => navigate(`/product/${product.id}`)} style={{ cursor: 'pointer' }}>
+                  <ProductCard
+                    image={product.image}
+                    title={product.name}
+                    subtitle={typeof product.price === 'number' ? product.price.toFixed(2) + ' €' : '—'}
                   />
                 </div>
               )}
               onLoadMore={loadMoreProducts}
               hasMore={hasMoreProducts}
-              isLoading={false}
+              isLoading={isLoadingMore}
               gridCols={3}
               keyExtractor={(product) => product.id}
               emptyComponent={

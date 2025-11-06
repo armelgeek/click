@@ -1,12 +1,20 @@
 import { 
   CartItem, 
-  AddToCartPayload, 
   UpdateCartItemPayload, 
   CreateOrderPayload, 
   Order,
   CartResponse,
   OrderResponse
 } from '../types';
+
+// On étend AddToCartPayload pour le mock API
+export interface AddToCartPayloadExtended {
+  productId: string;
+  quantity: number;
+  name: string;
+  price: number;
+  image: string;
+}
 import { mockCart, mockOrders, calculateCartTotal, calculateItemCount } from '../data/mock-data';
 
 const delay = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
@@ -28,25 +36,27 @@ export class CartAPI {
     };
   }
 
-  static async addToCart(payload: AddToCartPayload): Promise<CartResponse> {
+  static async addToCart(payload: AddToCartPayloadExtended): Promise<CartResponse> {
     await delay(300);
-    
+    const p = payload as AddToCartPayloadExtended;
     const existingItemIndex = currentCart.items.findIndex(
-      item => item.productId === payload.productId
+      item => item.productId === p.productId
     );
 
     if (existingItemIndex >= 0) {
-      currentCart.items[existingItemIndex].quantity += payload.quantity;
+      currentCart.items[existingItemIndex].quantity += p.quantity;
     } else {
+      
       const newItem: CartItem = {
         id: `item-${Date.now()}`,
-        productId: payload.productId,
-        name: 'Blue Devil By Avap 50ml', 
-        price: 25.90,
-        image: '/icons/product.png',
-        quantity: payload.quantity,
+        productId: p.productId,
+        name: p.name,
+        price: p.price,
+        image: p.image,
+        quantity: p.quantity,
         selected: true,
       };
+      console.log(newItem);
       currentCart.items.push(newItem);
     }
 
