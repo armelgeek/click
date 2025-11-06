@@ -156,7 +156,6 @@ export default function ShopListPage() {
           hasMore={catHasMore}
           isLoading={catLoading}
           gridCols={4}
-          loadingComponent={<div className="flex justify-center py-2"><span className="text-gray-500 text-sm">Chargement...</span></div>}
           emptyComponent={catError ? <div className="text-red-500 text-center w-full py-4">{catError}</div> : <div className="text-gray-500 text-center w-full py-4">Aucune catégorie trouvée</div>}
           keyExtractor={(cat) => cat.id}
         />
