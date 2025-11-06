@@ -41,12 +41,15 @@ function App() {
   }
 
   return (
+
     <Provider>
       <CartProvider>
         <NetworkStatusBanner />
         <AgeWarningModal open={!ageAccepted} onAccept={handleAccept} onQuit={handleQuit} />
         <ToastContainer />
-        <RouterProvider router={router} />
+        <div className='bg-[#ebf2eb]'>
+          <RouterProvider router={router} />
+        </div>
       </CartProvider>
     </Provider>
   );

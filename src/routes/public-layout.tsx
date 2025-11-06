@@ -8,7 +8,7 @@ export default function PublicLayout() {
         <>
             <VapoHeader />
             <CartDrawer />
-            <div className="z-10 relative w-full h-full bg-white">
+            <div className="z-10 relative w-full h-full bg-[#ebf2eb]">
                 <Outlet />
             </div>
             <VapoFooter />
