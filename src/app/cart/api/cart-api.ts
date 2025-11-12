@@ -16,6 +16,7 @@ export interface AddToCartPayloadExtended {
   image: string;
 }
 import { mockCart, mockOrders, calculateCartTotal, calculateItemCount } from '../data/mock-data';
+import { addMockOrder } from '@/app/orders/data/mock-orders';
 
 const delay = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
 
@@ -165,6 +166,9 @@ export class CartAPI {
     };
 
     currentOrders.push(newOrder);
+    
+    // Also add to shared orders storage for OrdersAPI
+    addMockOrder(newOrder);
 
     currentCart.items = currentCart.items.filter(item => !item.selected);
     currentCart.total = calculateCartTotal(currentCart.items);
