@@ -1,5 +1,4 @@
-import { apiClient, API_ENDPOINTS } from '@/shared/config/api.config';
-import { 
+import {
   OrderStatistics, 
   OrderRatingPayload, 
   OrderReturnPayload, 
@@ -10,6 +9,9 @@ import {
   PaginationParams,
   PaginatedResponse
 } from '@/shared/types/api.types';
+import { getMockOrders, getMockOrderById } from '../data/mock-orders';
+
+const delay = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
 
 export interface CreateOrderPayload {
   addressId: string;
@@ -52,82 +54,168 @@ export interface Order {
 
 export class OrdersAPI {
   
-  static async createOrder(payload: CreateOrderPayload): Promise<{ order: Order }> {
-    const response = await apiClient.post<{ order: Order }>(
-      API_ENDPOINTS.orders.create,
-      payload
-    );
-    return response.data;
+  static async createOrder(_payload: CreateOrderPayload): Promise<{ order: Order }> {
+    await delay(300);
+    // This should not be called directly - orders are created via CartAPI
+    throw new Error('Orders should be created via CartAPI.createOrder()');
   }
 
   static async getOrders(params?: PaginationParams): Promise<PaginatedResponse<Order>> {
-    const response = await apiClient.get<PaginatedResponse<Order>>(
-      API_ENDPOINTS.orders.list,
-      { params }
-    );
-    return response.data;
+    await delay(250);
+    const orders = getMockOrders();
+    
+    // Convert orders to the expected format
+    const convertedOrders: Order[] = orders.map(order => ({
+      id: order.id,
+      status: order.status || 'pending',
+      statusLabel: this.getStatusLabel(order.status),
+      statusColor: this.getStatusColor(order.status),
+      date: order.createdAt || new Date().toISOString(),
+      deliveryAddress: order.deliveryAddress || '',
+      totalAmount: order.total || 0,
+      currency: 'EUR',
+      items: order.items?.map(item => ({
+        id: item.id,
+        name: item.name,
+        quantity: item.quantity,
+        price: item.price,
+        image: item.image
+      })) || [],
+      createdAt: order.createdAt,
+      updatedAt: order.updatedAt
+    }));
+
+    const page = params?.page || 1;
+    const limit = params?.limit || 10;
+    const start = (page - 1) * limit;
+    const end = start + limit;
+    
+    return {
+      data: convertedOrders.slice(start, end),
+      total: convertedOrders.length,
+      page,
+      limit,
+      totalPages: Math.ceil(convertedOrders.length / limit)
+    };
   }
 
   static async getOrderById(orderId: string): Promise<Order> {
-    const response = await apiClient.get<Order>(API_ENDPOINTS.orders.detail(orderId));
-    return response.data;
+    await delay(200);
+    const order = getMockOrderById(orderId);
+    
+    if (!order) {
+      throw new Error('Order not found');
+    }
+
+    return {
+      id: order.id,
+      status: order.status || 'pending',
+      statusLabel: this.getStatusLabel(order.status),
+      statusColor: this.getStatusColor(order.status),
+      date: order.createdAt || new Date().toISOString(),
+      deliveryAddress: order.deliveryAddress || '',
+      totalAmount: order.total || 0,
+      currency: 'EUR',
+      items: order.items?.map(item => ({
+        id: item.id,
+        name: item.name,
+        quantity: item.quantity,
+        price: item.price,
+        image: item.image
+      })) || [],
+      createdAt: order.createdAt,
+      updatedAt: order.updatedAt
+    };
   }
 
   static async getOrderStatistics(): Promise<OrderStatistics> {
-    const response = await apiClient.get<OrderStatistics>(API_ENDPOINTS.orders.statistics);
-    return response.data;
+    await delay(200);
+    const orders = getMockOrders();
+    const totalSpent = orders.reduce((sum, order) => sum + (order.total || 0), 0);
+    
+    return {
+      totalOrders: orders.length,
+      totalSpent,
+      averageOrderValue: orders.length > 0 ? totalSpent / orders.length : 0
+    };
   }
 
-  static async cancelOrder(orderId: string, payload?: OrderCancelPayload): Promise<{ success: boolean; message: string }> {
-    const response = await apiClient.put<{ success: boolean; message: string }>(
-      API_ENDPOINTS.orders.cancel(orderId),
-      payload
-    );
-    return response.data;
+  static async cancelOrder(_orderId: string, _payload?: OrderCancelPayload): Promise<{ success: boolean; message: string }> {
+    await delay(300);
+    return {
+      success: true,
+      message: 'Commande annulée avec succès'
+    };
   }
 
-  static async requestReturn(orderId: string, payload: OrderReturnPayload): Promise<{ success: boolean; message: string }> {
-    const response = await apiClient.post<{ success: boolean; message: string }>(
-      API_ENDPOINTS.orders.return(orderId),
-      payload
-    );
-    return response.data;
+  static async requestReturn(_orderId: string, _payload: OrderReturnPayload): Promise<{ success: boolean; message: string }> {
+    await delay(400);
+    return {
+      success: true,
+      message: 'Demande de retour enregistrée'
+    };
   }
 
   static async getReturnStatus(orderId: string): Promise<OrderReturnStatus> {
-    const response = await apiClient.get<OrderReturnStatus>(
-      API_ENDPOINTS.orders.returnStatus(orderId)
-    );
-    return response.data;
+    await delay(200);
+    return {
+      orderId,
+      status: 'pending',
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString()
+    };
   }
 
-  static async rateOrder(orderId: string, payload: OrderRatingPayload): Promise<{ success: boolean; message: string }> {
-    const response = await apiClient.post<{ success: boolean; message: string }>(
-      API_ENDPOINTS.orders.rating(orderId),
-      payload
-    );
-    return response.data;
+  static async rateOrder(_orderId: string, _payload: OrderRatingPayload): Promise<{ success: boolean; message: string }> {
+    await delay(300);
+    return {
+      success: true,
+      message: 'Merci pour votre évaluation !'
+    };
   }
 
-  static async getOrderTracking(orderId: string): Promise<OrderTracking> {
-    const response = await apiClient.get<OrderTracking>(
-      API_ENDPOINTS.orders.tracking(orderId)
-    );
-    return response.data;
+  static async getOrderTracking(_orderId: string): Promise<OrderTracking> {
+    await delay(250);
+    // This should use DeliveryAPI instead
+    throw new Error('Use DeliveryAPI.getOrderTracking() instead');
   }
 
-  static async getOrderInvoice(orderId: string): Promise<{ url: string }> {
-    const response = await apiClient.get<{ url: string }>(
-      API_ENDPOINTS.orders.invoice(orderId)
-    );
-    return response.data;
+  static async getOrderInvoice(_orderId: string): Promise<{ url: string }> {
+    await delay(300);
+    return {
+      url: `/invoices/${_orderId}.pdf`
+    };
   }
 
-  static async confirmDelivery(orderId: string, payload: DeliveryConfirmationPayload): Promise<{ success: boolean; message: string }> {
-    const response = await apiClient.post<{ success: boolean; message: string }>(
-      API_ENDPOINTS.orders.confirmDelivery(orderId),
-      payload
-    );
-    return response.data;
+  static async confirmDelivery(_orderId: string, _payload: DeliveryConfirmationPayload): Promise<{ success: boolean; message: string }> {
+    await delay(400);
+    return {
+      success: true,
+      message: 'Livraison confirmée'
+    };
+  }
+
+  private static getStatusLabel(status?: string): string {
+    switch (status) {
+      case 'pending': return 'En attente';
+      case 'confirmed': return 'Confirmée';
+      case 'preparing': return 'En préparation';
+      case 'in_delivery': return 'En livraison';
+      case 'delivered': return 'Livrée';
+      case 'cancelled': return 'Annulée';
+      default: return 'Inconnu';
+    }
+  }
+
+  private static getStatusColor(status?: string): string {
+    switch (status) {
+      case 'pending': return 'yellow';
+      case 'confirmed': return 'blue';
+      case 'preparing': return 'orange';
+      case 'in_delivery': return 'purple';
+      case 'delivered': return 'green';
+      case 'cancelled': return 'red';
+      default: return 'gray';
+    }
   }
 }
