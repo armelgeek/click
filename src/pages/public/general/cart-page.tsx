@@ -53,10 +53,8 @@ export default function CartPage() {
     const {
         incrementQuantity,
         decrementQuantity,
-        createOrder,
-        isCreatingOrder,
+        removeFromCart,
     } = useCartMutations();
-    const { removeFromCart } = useCartMutations();
 
     const [deleteModalOpen, setDeleteModalOpen] = useState(false);
     const [pendingDeleteId, setPendingDeleteId] = useState<string | null>(null);
@@ -106,20 +104,8 @@ export default function CartPage() {
     const handleCheckout = () => {
         if (!cart) return;
         
-        // TODO: Implement checkout flow with address and payment selection
-        // For now, this is a placeholder that will be replaced with proper checkout
-        createOrder.mutate(
-            {
-                addressId: 'temp-address-id', // Will be selected in checkout flow
-                paymentMethodId: 'temp-payment-id', // Will be selected in checkout flow
-                notes: 'Livraison rapide',
-            },
-            {
-                onSuccess: (response: { order: { id: string } }) => {
-                    navigate(`/order-success/${response.order.id}`);
-                },
-            }
-        );
+        // Navigate to checkout page
+        navigate('/checkout');
     };
 
     if (isLoading) {
@@ -203,16 +189,9 @@ export default function CartPage() {
                         variant="vapo" 
                         className="w-full h-14 text-lg font-semibold mt-4"
                         onClick={handleCheckout}
-                        disabled={!hasSelectedItems || isCreatingOrder}
+                        disabled={!hasSelectedItems}
                     >
-                        {isCreatingOrder ? (
-                            <div className="flex items-center gap-2">
-                                <span className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                                Traitement en cours...
-                            </div>
-                        ) : (
-                            'Effectuer ma commande'
-                        )}
+                        Effectuer ma commande
                     </Button>
                 </>
             )}
