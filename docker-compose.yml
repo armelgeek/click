@@ -1,0 +1,65 @@
+version: '3.8'
+
+services:
+  # PostgreSQL Database
+  postgres:
+    image: postgres:14-alpine
+    container_name: clicknvape-db
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: clicknvape
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # Backend API Server
+  backend:
+    build:
+      context: ./server
+      dockerfile: Dockerfile
+    container_name: clicknvape-api
+    environment:
+      PORT: 3000
+      NODE_ENV: development
+      DATABASE_URL: postgresql://postgres:postgres@postgres:5432/clicknvape?schema=public
+      JWT_SECRET: dev-secret-key-change-in-production
+      JWT_EXPIRATION: 7d
+      FRONTEND_URL: http://localhost:5173
+      SESSION_SECRET: dev-session-secret
+      PAYMENT_GATEWAY_SECRET_KEY: sk_test_placeholder
+      PAYMENT_GATEWAY_PUBLISHABLE_KEY: pk_test_placeholder
+    ports:
+      - "3000:3000"
+    depends_on:
+      postgres:
+        condition: service_healthy
+    volumes:
+      - ./server/src:/app/src
+      - ./server/prisma:/app/prisma
+    command: sh -c "npx prisma migrate deploy && npm run dev"
+
+  # Frontend (Optional - can run separately with npm run dev)
+  # frontend:
+  #   build:
+  #     context: .
+  #     dockerfile: Dockerfile
+  #   container_name: clicknvape-frontend
+  #   environment:
+  #     VITE_APP_SERVER_URL: http://localhost:3000
+  #   ports:
+  #     - "5173:5173"
+  #   volumes:
+  #     - ./src:/app/src
+  #     - ./public:/app/public
+  #   depends_on:
+  #     - backend
+
+volumes:
+  postgres_data:
