@@ -7,22 +7,23 @@ import { UpdateCartItemPayload, CreateOrderPayload } from '../types';
 import { AddToCartPayloadExtended } from '../api/cart-api';
 import { GuestCartService } from '../services/guest-cart.service';
 import { useSession } from '@/shared/config/auth.config';
-import { useState, useEffect } from 'react';
+import { useEffect } from 'react';
 
 
 export const useCart = () => {
   const queryClient = useQueryClient();
   const { data: session } = useSession();
   const isAuthenticated = !!session?.user;
-  const [guestCart, setGuestCart] = useState<Cart | null>(null);
+  const cartStore = useCartStore();
 
   // Load guest cart on mount if not authenticated
   useEffect(() => {
     if (!isAuthenticated) {
       const cart = GuestCartService.getCart() || GuestCartService.createEmptyCart();
-      setGuestCart(cart);
+      // Initialize Zustand store with guest cart data
+      cartStore.setCartData(cart);
     }
-  }, [isAuthenticated]);
+  }, [isAuthenticated, cartStore]);
 
   const query = useQuery({
     queryKey: cartKeys.cart(),
@@ -39,6 +40,17 @@ export const useCart = () => {
       queryKey: cartKeys.cart(),
       refetchType: 'all',
     });
+  };
+
+  // For guest users, build cart from Zustand store
+  // For authenticated users, use API cart data
+  const guestCart: Cart | null = isAuthenticated ? null : {
+    id: 'guest-cart',
+    items: cartStore.items,
+    total: cartStore.total,
+    itemCount: cartStore.itemCount,
+    createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString(),
   };
 
   // Return guest cart if not authenticated, otherwise return API cart
