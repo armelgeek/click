@@ -16,10 +16,6 @@ export interface PaginatedProductsResponse {
   totalPages: number;
 }
 import { apiClient, API_ENDPOINTS } from '@/shared/config/api.config';
-import { mockCategories } from '../data/mock-data';
-
-
-const delay = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
 
 export interface StoresQueryParams {
   page?: number;
@@ -130,7 +126,7 @@ export class CatalogAPI {
     };
   }
 
-  static async getCategoriesByShop(shopId: string): Promise<CategoriesResponse> {
+  static async getCategoriesByShop(): Promise<CategoriesResponse> {
     const response = await apiClient.get(API_ENDPOINTS.categories.list);
     return {
       categories: response.data || null
