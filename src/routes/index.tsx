@@ -47,6 +47,10 @@ const privateRoutes: RouteObject[] = [
             }
         ],
     },
+    {
+        path: '/checkout',
+        element: <CheckoutPage />,
+    },
 ];
 
 const publicRoutes: RouteObject[] = [
@@ -59,10 +63,6 @@ const publicRoutes: RouteObject[] = [
     {
         path: '/cart',
         element: <CartPage />,
-    },
-    {
-        path: '/checkout',
-        element: <CheckoutPage />,
     },
     {
         path: '/delivery',

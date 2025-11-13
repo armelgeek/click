@@ -10,6 +10,7 @@ import { useState } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/shared/components/ui/dialog';
 import { useRecommendedProducts } from '@/app/catalog/hooks/use-recommended-products';
 import { CartItem as CartItemType } from '@/app/cart/types';
+import { useSession } from '@/shared/config/auth.config';
 
 import { HorizontalScrollContainer } from '@/components/molecules/horizontal-scroll-container';
 
@@ -49,6 +50,7 @@ import { CartPageSkeleton } from '@/components/atoms/cart-skeleton';
 
 export default function CartPage() {
     const navigate = useNavigate();
+    const { data: session } = useSession();
     const { cart, isLoading, error } = useCart();
     const {
         incrementQuantity,
@@ -103,6 +105,13 @@ export default function CartPage() {
 
     const handleCheckout = () => {
         if (!cart) return;
+        
+        // Check if user is authenticated
+        if (!session?.user) {
+            // Redirect to login with return URL to come back to checkout
+            navigate('/login?returnTo=/checkout');
+            return;
+        }
         
         // Navigate to checkout page
         navigate('/checkout');

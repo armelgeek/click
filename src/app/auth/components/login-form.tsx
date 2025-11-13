@@ -5,12 +5,14 @@ import { useForm, Controller } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { loginSchema, LoginFormValues } from '../types/login.schema';
 import { signIn } from '@/shared/config/auth.config';
-import { useNavigate } from 'react-router';
+import { useNavigate, useSearchParams } from 'react-router';
 import { useState } from 'react';
 import { useToast } from '@/hooks/use-toast';
 
 export default function LoginForm() {
     const navigate = useNavigate();
+    const [searchParams] = useSearchParams();
+    const returnTo = searchParams.get('returnTo');
     const [loading, setLoading] = useState(false);
     const { success, error: showErrorToast } = useToast();
     const {
@@ -38,7 +40,8 @@ export default function LoginForm() {
             if (result?.data) {
                 success('Connexion réussie !');
                 setTimeout(() => {
-                    navigate('/profile/home');
+                    // Redirect to returnTo URL if provided, otherwise go to profile
+                    navigate(returnTo || '/profile/home');
                 }, 1000);
             } else {
                 throw new Error('Erreur lors de la connexion');
