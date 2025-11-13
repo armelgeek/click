@@ -1,6 +1,7 @@
 import { useForm, Controller } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
+import { forwardRef, useImperativeHandle } from 'react';
 import { Input } from '@/shared/components/ui/input';
 import { Button } from '@/shared/components/ui/button';
 import { useAddressesMutations } from '@/app/user/hooks/use-addresses';
@@ -20,15 +21,23 @@ type AddressFormValues = z.infer<typeof addressSchema>;
 interface AddressFormProps {
   address?: Address | null;
   onSuccess: () => void;
-  onCancel: () => void;
+  onCancel?: () => void;
+  hideButtons?: boolean;
 }
 
-export function AddressForm({ address, onSuccess, onCancel }: AddressFormProps) {
+export interface AddressFormHandle {
+  submit: () => Promise<void>;
+  isValid: () => Promise<boolean>;
+}
+
+export const AddressForm = forwardRef<AddressFormHandle, AddressFormProps>(
+  ({ address, onSuccess, onCancel, hideButtons = false }, ref) => {
   const { createAddress, updateAddress } = useAddressesMutations();
 
   const {
     control,
     handleSubmit,
+    trigger,
     formState: { errors },
   } = useForm<AddressFormValues>({
     resolver: zodResolver(addressSchema),
@@ -59,6 +68,16 @@ export function AddressForm({ address, onSuccess, onCancel }: AddressFormProps) 
   };
 
   const isPending = createAddress.isPending || updateAddress.isPending;
+
+  // Expose submit function to parent via ref
+  useImperativeHandle(ref, () => ({
+    submit: async () => {
+      await handleSubmit(onSubmit)();
+    },
+    isValid: async () => {
+      return await trigger();
+    },
+  }));
 
   return (
     <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
@@ -184,25 +203,27 @@ export function AddressForm({ address, onSuccess, onCancel }: AddressFormProps) 
         )}
       />
 
-      <div className="flex gap-4 mt-6">
-        <Button
-          type="button"
-          variant="outline"
-          className="flex-1"
-          onClick={onCancel}
-          disabled={isPending}
-        >
-          Annuler
-        </Button>
-        <Button
-          type="submit"
-          variant="vapo"
-          className="flex-1"
-          disabled={isPending}
-        >
-          {isPending ? 'Enregistrement...' : address ? 'Modifier' : 'Ajouter'}
-        </Button>
-      </div>
+      {!hideButtons && (
+        <div className="flex gap-4 mt-6">
+          <Button
+            type="button"
+            variant="outline"
+            className="flex-1"
+            onClick={onCancel}
+            disabled={isPending}
+          >
+            Annuler
+          </Button>
+          <Button
+            type="submit"
+            variant="vapo"
+            className="flex-1"
+            disabled={isPending}
+          >
+            {isPending ? 'Enregistrement...' : address ? 'Modifier' : 'Ajouter'}
+          </Button>
+        </div>
+      )}
     </form>
   );
-}
+});

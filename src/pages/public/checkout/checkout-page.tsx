@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 import { useNavigate } from 'react-router';
 import { Button } from '@/shared/components/ui/button';
 import { RadioGroup } from '@/shared/components/ui/radio-group';
@@ -8,7 +8,7 @@ import { formatPrice } from '@/lib/utils';
 import { ShoppingCart, MapPin, CreditCard, PackageCheck, AlertTriangle } from 'lucide-react';
 import { simulatePayment } from '@/app/checkout/data/mock-checkout-data';
 import { Address, PaymentMethod } from '@/shared/types/api.types';
-import { AddressForm } from '@/pages/private/profile/addresses/address-form';
+import { AddressForm, AddressFormHandle } from '@/pages/private/profile/addresses/address-form';
 import { PaymentMethodForm } from '@/pages/private/profile/payment-methods/payment-method-form';
 import { CartAPI } from '@/app/cart/api/cart-api';
 import { StockValidationResponse } from '@/app/cart/types';
@@ -31,6 +31,7 @@ export default function CheckoutPage() {
   const [showPaymentForm, setShowPaymentForm] = useState(false);
   const [stockValidation, setStockValidation] = useState<StockValidationResponse | null>(null);
   const [isValidatingStock, setIsValidatingStock] = useState(false);
+  const addressFormRef = useRef<AddressFormHandle>(null);
 
   // Redirect if cart is empty
   if (!isLoadingCart && (!cart || cart.items.length === 0)) {
@@ -51,8 +52,22 @@ export default function CheckoutPage() {
     return calculateSubtotal() + calculateShippingFee();
   };
 
-  const handleNextStep = () => {
+  const handleNextStep = async () => {
     if (currentStep === 'address') {
+      // If showing address form, validate and submit it
+      if (showAddressForm && addressFormRef.current) {
+        const isValid = await addressFormRef.current.isValid();
+        if (!isValid) {
+          alert('Veuillez remplir tous les champs requis de l\'adresse');
+          return;
+        }
+        await addressFormRef.current.submit();
+        // onSuccess callback will handle refetch and form hiding
+        // After refetch, user should select the new address
+        return;
+      }
+      
+      // Otherwise, check if an address is selected
       if (!selectedAddressId) {
         alert('Veuillez sélectionner une adresse de livraison');
         return;
@@ -150,13 +165,28 @@ export default function CheckoutPage() {
               : "Ajouter une nouvelle adresse"}
           </p>
           <AddressForm
+            ref={addressFormRef}
             address={null}
-            onSuccess={() => {
+            onSuccess={async () => {
               setShowAddressForm(false);
-              refetchAddresses();
+              const result = await refetchAddresses();
+              // Auto-select the newly created address (it will be the last one or the one with highest ID)
+              if (result.data?.addresses && result.data.addresses.length > 0) {
+                const newAddress = result.data.addresses[result.data.addresses.length - 1];
+                setSelectedAddressId(newAddress.id);
+              }
             }}
-            onCancel={() => setShowAddressForm(false)}
+            hideButtons={true}
           />
+          {addresses.length > 0 && (
+            <Button
+              variant="outline"
+              className="mt-4"
+              onClick={() => setShowAddressForm(false)}
+            >
+              Retour à la liste
+            </Button>
+          )}
         </div>
       ) : (
         <>
