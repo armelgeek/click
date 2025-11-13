@@ -15,11 +15,19 @@ export interface PaginatedProductsResponse {
   limit: number;
   totalPages: number;
 }
+
+// Backend API response structure with meta
+interface BackendPaginatedResponse<T> {
+  data: T[];
+  meta: {
+    total: number;
+    page: number;
+    limit: number;
+    totalPages: number;
+  };
+}
+
 import { apiClient, API_ENDPOINTS } from '@/shared/config/api.config';
-import { mockCategories } from '../data/mock-data';
-
-
-const delay = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
 
 export interface StoresQueryParams {
   page?: number;
@@ -59,7 +67,7 @@ export class CatalogAPI {
     storeId: string, 
     params: ProductsQueryParams = {}
   ): Promise<PaginatedProductsResponse> {
-    const response = await apiClient.get<any>(
+    const response = await apiClient.get<BackendPaginatedResponse<Product>>(
       API_ENDPOINTS.stores.products(storeId),
       {
         params: {
@@ -85,7 +93,7 @@ export class CatalogAPI {
   }
 
   static async getAllProducts(params: ProductsQueryParams = {}): Promise<PaginatedProductsResponse> {
-    const response = await apiClient.get<any>(API_ENDPOINTS.products.list, {
+    const response = await apiClient.get<BackendPaginatedResponse<Product>>(API_ENDPOINTS.products.list, {
       params: {
         page: params.page || 1,
         limit: params.limit || 20,
@@ -131,7 +139,9 @@ export class CatalogAPI {
   }
 
   static async getCategoriesByShop(shopId: string): Promise<CategoriesResponse> {
-    const response = await apiClient.get(API_ENDPOINTS.categories.list);
+    const response = await apiClient.get(API_ENDPOINTS.categories.list, {
+      params: { shopId }
+    });
     return {
       categories: response.data || null
     };

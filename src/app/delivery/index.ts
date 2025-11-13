@@ -19,9 +19,5 @@ export {
 
 export { DeliveryAPI } from './api/delivery-api';
 
-export { 
-  mockDeliveryTracking, 
-  mockDrivers, 
-  mockLocations, 
-  getStatusDisplayInfo 
-} from './data/mock-data';
+// Keep getStatusDisplayInfo as it's a utility function that may be used in components
+export { getStatusDisplayInfo } from './data/mock-data';

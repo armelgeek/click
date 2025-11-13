@@ -9,14 +9,37 @@ import {
   PaginationParams,
   PaginatedResponse
 } from '@/shared/types/api.types';
-import { getMockOrders, getMockOrderById } from '../data/mock-orders';
-
-const delay = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
+import { apiClient, API_ENDPOINTS } from '@/shared/config/api.config';
 
 export interface CreateOrderPayload {
   addressId: string;
   paymentMethodId: string;
   notes?: string;
+}
+
+export interface OrderItemApi {
+  id: string;
+  name: string;
+  quantity: number;
+  price: number;
+  image?: string;
+}
+
+export interface OrderApi {
+  id: string;
+  number?: number;
+  status: string;
+  date?: string;
+  estimatedDelivery?: string;
+  deliveryAddress?: string;
+  totalAmount?: number;
+  total?: number;
+  currency?: string;
+  items?: OrderItemApi[];
+  proofOfDelivery?: ProofOfDelivery;
+  tracking?: OrderTracking;
+  createdAt?: string;
+  updatedAt?: string;
 }
 
 export interface OrderItem {
@@ -55,144 +78,138 @@ export interface Order {
 export class OrdersAPI {
   
   static async createOrder(_payload: CreateOrderPayload): Promise<{ order: Order }> {
-    await delay(300);
     // This should not be called directly - orders are created via CartAPI
     throw new Error('Orders should be created via CartAPI.createOrder()');
   }
 
   static async getOrders(params?: PaginationParams): Promise<PaginatedResponse<Order>> {
-    await delay(250);
-    const orders = getMockOrders();
+    const response = await apiClient.get<PaginatedResponse<OrderApi>>(
+      API_ENDPOINTS.orders.list,
+      { params }
+    );
     
-    // Convert orders to the expected format
-    const convertedOrders: Order[] = orders.map(order => ({
+    // Convert API response to expected format
+    const convertedOrders: Order[] = (response.data.data || []).map((order: OrderApi) => ({
       id: order.id,
+      number: order.number,
       status: order.status || 'pending',
       statusLabel: this.getStatusLabel(order.status),
       statusColor: this.getStatusColor(order.status),
-      date: order.createdAt || new Date().toISOString(),
+      date: order.date || order.createdAt || new Date().toISOString(),
+      estimatedDelivery: order.estimatedDelivery,
       deliveryAddress: order.deliveryAddress || '',
-      totalAmount: order.total || 0,
-      currency: 'EUR',
-      items: order.items?.map(item => ({
+      totalAmount: order.totalAmount || order.total || 0,
+      currency: order.currency || 'EUR',
+      items: (order.items || []).map((item: OrderItemApi) => ({
         id: item.id,
         name: item.name,
         quantity: item.quantity,
         price: item.price,
         image: item.image
-      })) || [],
+      })),
+      proofOfDelivery: order.proofOfDelivery,
+      tracking: order.tracking,
       createdAt: order.createdAt,
       updatedAt: order.updatedAt
     }));
 
-    const page = params?.page || 1;
-    const limit = params?.limit || 10;
-    const start = (page - 1) * limit;
-    const end = start + limit;
-    
     return {
-      data: convertedOrders.slice(start, end),
-      total: convertedOrders.length,
-      page,
-      limit,
-      totalPages: Math.ceil(convertedOrders.length / limit)
+      data: convertedOrders,
+      total: response.data.total || convertedOrders.length,
+      page: response.data.page || (params?.page || 1),
+      limit: response.data.limit || (params?.limit || 10),
+      totalPages: response.data.totalPages || Math.ceil(convertedOrders.length / (params?.limit || 10))
     };
   }
 
   static async getOrderById(orderId: string): Promise<Order> {
-    await delay(200);
-    const order = getMockOrderById(orderId);
+    const response = await apiClient.get<OrderApi>(
+      API_ENDPOINTS.orders.detail(orderId)
+    );
     
-    if (!order) {
-      throw new Error('Order not found');
-    }
+    const order = response.data;
 
     return {
       id: order.id,
+      number: order.number,
       status: order.status || 'pending',
       statusLabel: this.getStatusLabel(order.status),
       statusColor: this.getStatusColor(order.status),
-      date: order.createdAt || new Date().toISOString(),
+      date: order.date || order.createdAt || new Date().toISOString(),
+      estimatedDelivery: order.estimatedDelivery,
       deliveryAddress: order.deliveryAddress || '',
-      totalAmount: order.total || 0,
-      currency: 'EUR',
-      items: order.items?.map(item => ({
+      totalAmount: order.totalAmount || order.total || 0,
+      currency: order.currency || 'EUR',
+      items: (order.items || []).map((item: OrderItemApi) => ({
         id: item.id,
         name: item.name,
         quantity: item.quantity,
         price: item.price,
         image: item.image
-      })) || [],
+      })),
+      proofOfDelivery: order.proofOfDelivery,
+      tracking: order.tracking,
       createdAt: order.createdAt,
       updatedAt: order.updatedAt
     };
   }
 
   static async getOrderStatistics(): Promise<OrderStatistics> {
-    await delay(200);
-    const orders = getMockOrders();
-    const totalSpent = orders.reduce((sum, order) => sum + (order.total || 0), 0);
-    
-    return {
-      totalOrders: orders.length,
-      totalSpent,
-      averageOrderValue: orders.length > 0 ? totalSpent / orders.length : 0
-    };
+    const response = await apiClient.get<OrderStatistics>(
+      API_ENDPOINTS.orders.statistics
+    );
+    return response.data;
   }
 
-  static async cancelOrder(_orderId: string, _payload?: OrderCancelPayload): Promise<{ success: boolean; message: string }> {
-    await delay(300);
-    return {
-      success: true,
-      message: 'Commande annulée avec succès'
-    };
+  static async cancelOrder(orderId: string, payload?: OrderCancelPayload): Promise<{ success: boolean; message: string }> {
+    const response = await apiClient.put<{ success: boolean; message: string }>(
+      API_ENDPOINTS.orders.cancel(orderId),
+      payload
+    );
+    return response.data;
   }
 
-  static async requestReturn(_orderId: string, _payload: OrderReturnPayload): Promise<{ success: boolean; message: string }> {
-    await delay(400);
-    return {
-      success: true,
-      message: 'Demande de retour enregistrée'
-    };
+  static async requestReturn(orderId: string, payload: OrderReturnPayload): Promise<{ success: boolean; message: string }> {
+    const response = await apiClient.post<{ success: boolean; message: string }>(
+      API_ENDPOINTS.orders.return(orderId),
+      payload
+    );
+    return response.data;
   }
 
   static async getReturnStatus(orderId: string): Promise<OrderReturnStatus> {
-    await delay(200);
-    return {
-      orderId,
-      status: 'pending',
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString()
-    };
+    const response = await apiClient.get<OrderReturnStatus>(
+      API_ENDPOINTS.orders.returnStatus(orderId)
+    );
+    return response.data;
   }
 
-  static async rateOrder(_orderId: string, _payload: OrderRatingPayload): Promise<{ success: boolean; message: string }> {
-    await delay(300);
-    return {
-      success: true,
-      message: 'Merci pour votre évaluation !'
-    };
+  static async rateOrder(orderId: string, payload: OrderRatingPayload): Promise<{ success: boolean; message: string }> {
+    const response = await apiClient.post<{ success: boolean; message: string }>(
+      API_ENDPOINTS.orders.rating(orderId),
+      payload
+    );
+    return response.data;
   }
 
   static async getOrderTracking(_orderId: string): Promise<OrderTracking> {
-    await delay(250);
     // This should use DeliveryAPI instead
     throw new Error('Use DeliveryAPI.getOrderTracking() instead');
   }
 
-  static async getOrderInvoice(_orderId: string): Promise<{ url: string }> {
-    await delay(300);
-    return {
-      url: `/invoices/${_orderId}.pdf`
-    };
+  static async getOrderInvoice(orderId: string): Promise<{ url: string }> {
+    const response = await apiClient.get<{ url: string }>(
+      API_ENDPOINTS.orders.invoice(orderId)
+    );
+    return response.data;
   }
 
-  static async confirmDelivery(_orderId: string, _payload: DeliveryConfirmationPayload): Promise<{ success: boolean; message: string }> {
-    await delay(400);
-    return {
-      success: true,
-      message: 'Livraison confirmée'
-    };
+  static async confirmDelivery(orderId: string, payload: DeliveryConfirmationPayload): Promise<{ success: boolean; message: string }> {
+    const response = await apiClient.post<{ success: boolean; message: string }>(
+      API_ENDPOINTS.orders.confirmDelivery(orderId),
+      payload
+    );
+    return response.data;
   }
 
   private static getStatusLabel(status?: string): string {
