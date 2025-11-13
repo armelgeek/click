@@ -2,8 +2,10 @@ import { useState } from 'react';
 import { Label } from '@/shared/components/ui/label';
 import { Input } from '@/shared/components/ui/input';
 import { Button } from '@/shared/components/ui/button';
-import { Truck } from 'lucide-react';
+import { Truck, AlertTriangle } from 'lucide-react';
 import { useNavigate } from 'react-router';
+import { useCart, useCartMutations } from '@/app/cart';
+import { formatPrice } from '@/lib/utils';
 
 const deliveryModes = [
     { label: 'Livraison express', value: 'express' },
@@ -16,8 +18,16 @@ const availableHours = [
 
 const daysInMonth = (year: number, month: number) => new Date(year, month + 1, 0).getDate();
 
+const monthNames = [
+    'Janvier', 'Février', 'Mars', 'Avril', 'Mai', 'Juin',
+    'Juillet', 'Août', 'Septembre', 'Octobre', 'Novembre', 'Décembre'
+];
+
 export default function DeliveryPage() {
     const navigate = useNavigate();
+    const { cart, isLoading: isLoadingCart } = useCart();
+    const { createOrder } = useCartMutations();
+    
     const [mode, setMode] = useState<'express' | 'planifiee'>('express');
     const [selectedDate, setSelectedDate] = useState(new Date());
     const [selectedHour, setSelectedHour] = useState('');
@@ -29,6 +39,109 @@ export default function DeliveryPage() {
         zip: '',
         country: '',
     });
+    const [errors, setErrors] = useState<Record<string, string>>({});
+    const [isSubmitting, setIsSubmitting] = useState(false);
+    const [submitError, setSubmitError] = useState<string | null>(null);
+
+    // Redirect if cart is empty
+    if (!isLoadingCart && (!cart || cart.items.length === 0)) {
+        navigate('/cart');
+        return null;
+    }
+
+    const calculateSubtotal = () => {
+        if (!cart) return 0;
+        return cart.items.reduce((total, item) => total + (item.price * item.quantity), 0);
+    };
+
+    const calculateShippingFee = () => {
+        return 4.99;
+    };
+
+    const calculateTotal = () => {
+        return calculateSubtotal() + calculateShippingFee();
+    };
+
+    const validateForm = () => {
+        const newErrors: Record<string, string> = {};
+
+        if (!form.name.trim()) {
+            newErrors.name = 'Le nom et prénom sont requis';
+        }
+        if (!form.phone.trim()) {
+            newErrors.phone = 'Le téléphone est requis';
+        }
+        if (!form.street.trim()) {
+            newErrors.street = 'L\'adresse est requise';
+        }
+        if (!form.city.trim()) {
+            newErrors.city = 'La ville est requise';
+        }
+        if (!form.zip.trim()) {
+            newErrors.zip = 'Le code postal est requis';
+        }
+        if (!form.country.trim()) {
+            newErrors.country = 'Le pays est requis';
+        }
+
+        if (mode === 'planifiee' && !selectedHour) {
+            newErrors.hour = 'Veuillez sélectionner une heure de livraison';
+        }
+
+        setErrors(newErrors);
+        return Object.keys(newErrors).length === 0;
+    };
+
+    const handleSubmit = async () => {
+        if (!cart) return;
+
+        if (!validateForm()) {
+            setSubmitError('Veuillez remplir tous les champs requis');
+            return;
+        }
+
+        setIsSubmitting(true);
+        setSubmitError(null);
+
+        try {
+            const deliveryInfo = mode === 'express'
+                ? 'Livraison express (le jour même)'
+                : `Livraison planifiée le ${selectedDate.toLocaleDateString('fr-FR')} à ${selectedHour}`;
+
+            const deliveryAddress = `${form.name}, ${form.street}, ${form.zip} ${form.city}, ${form.country}`;
+            
+            createOrder.mutate(
+                {
+                    cartId: cart.id,
+                    deliveryAddress: deliveryAddress,
+                    paymentMethod: 'Paiement à la livraison',
+                    notes: `${deliveryInfo} - Téléphone: ${form.phone}`,
+                },
+                {
+                    onSuccess: (response) => {
+                        navigate(`/order-success/${response.order.id}`);
+                    },
+                    onError: (error) => {
+                        console.error('Order creation failed:', error);
+                        setSubmitError('Erreur lors de la création de la commande. Veuillez réessayer.');
+                        setIsSubmitting(false);
+                    },
+                }
+            );
+        } catch (error) {
+            console.error('Submit error:', error);
+            setSubmitError('Une erreur est survenue. Veuillez réessayer.');
+            setIsSubmitting(false);
+        }
+    };
+
+    if (isLoadingCart) {
+        return (
+            <div className="min-h-screen flex items-center justify-center">
+                <div className="text-lg">Chargement...</div>
+            </div>
+        );
+    }
 
     const year = selectedDate.getFullYear();
     const month = selectedDate.getMonth();
@@ -48,23 +161,91 @@ export default function DeliveryPage() {
             </div>
             <div className="bg-white rounded-2xl p-6 flex flex-col gap-2">
                 <div className="text-lg font-medium">Prix total</div>
-                <div className="text-2xl font-bold">25.90 €</div>
+                <div className="text-2xl font-bold">{formatPrice(calculateTotal())}</div>
+                <div className="text-sm text-gray-600 mt-2">
+                    <div className="flex justify-between">
+                        <span>Sous-total</span>
+                        <span>{formatPrice(calculateSubtotal())}</span>
+                    </div>
+                    <div className="flex justify-between">
+                        <span>Frais de livraison</span>
+                        <span>{formatPrice(calculateShippingFee())}</span>
+                    </div>
+                </div>
             </div>
             <div className="bg-white rounded-2xl p-6 flex flex-col gap-4">
                 <div className="text-lg font-semibold mb-1">Détail de la livraison</div>
-                <div className="text-sm text-gray-700 mb-2">Veuillez remplir les informations en bas concernant l’adresse de livraison.</div>
+                <div className="text-sm text-gray-700 mb-2">Veuillez remplir les informations en bas concernant l'adresse de livraison.</div>
+                
+                {submitError && (
+                    <div className="p-4 bg-red-50 border border-red-200 rounded-lg text-red-700">
+                        <div className="flex items-start gap-2">
+                            <AlertTriangle className="w-5 h-5 mt-0.5 flex-shrink-0" />
+                            <p>{submitError}</p>
+                        </div>
+                    </div>
+                )}
+                
                 <div className="text-vapo-purple-primary font-semibold mb-1">Information client</div>
-                <Input placeholder="Nom et prénom" value={form.name} onChange={e => setForm(f => ({ ...f, name: e.target.value }))} className="mb-2" />
-                <Input placeholder="Téléphone" value={form.phone} onChange={e => setForm(f => ({ ...f, phone: e.target.value }))} className="mb-4" />
+                <div>
+                    <Input 
+                        placeholder="Nom et prénom" 
+                        value={form.name} 
+                        onChange={e => setForm(f => ({ ...f, name: e.target.value }))} 
+                        className={errors.name ? 'border-red-500' : ''}
+                    />
+                    {errors.name && <p className="text-red-500 text-sm mt-1">{errors.name}</p>}
+                </div>
+                <div>
+                    <Input 
+                        placeholder="Téléphone" 
+                        value={form.phone} 
+                        onChange={e => setForm(f => ({ ...f, phone: e.target.value }))} 
+                        className={errors.phone ? 'border-red-500' : ''}
+                    />
+                    {errors.phone && <p className="text-red-500 text-sm mt-1">{errors.phone}</p>}
+                </div>
                 <div className="text-vapo-purple-primary font-semibold mb-1">Adresse de livraison</div>
-                <Input placeholder="Numéro de rue" value={form.street} onChange={e => setForm(f => ({ ...f, street: e.target.value }))} className="mb-2" />
-                <Input placeholder="Ville" value={form.city} onChange={e => setForm(f => ({ ...f, city: e.target.value }))} className="mb-2" />
-                <Input placeholder="Code postal" value={form.zip} onChange={e => setForm(f => ({ ...f, zip: e.target.value }))} className="mb-2" />
-                <Input placeholder="Pays" value={form.country} onChange={e => setForm(f => ({ ...f, country: e.target.value }))} className="mb-2" />
+                <div>
+                    <Input 
+                        placeholder="Numéro de rue" 
+                        value={form.street} 
+                        onChange={e => setForm(f => ({ ...f, street: e.target.value }))} 
+                        className={errors.street ? 'border-red-500' : ''}
+                    />
+                    {errors.street && <p className="text-red-500 text-sm mt-1">{errors.street}</p>}
+                </div>
+                <div>
+                    <Input 
+                        placeholder="Ville" 
+                        value={form.city} 
+                        onChange={e => setForm(f => ({ ...f, city: e.target.value }))} 
+                        className={errors.city ? 'border-red-500' : ''}
+                    />
+                    {errors.city && <p className="text-red-500 text-sm mt-1">{errors.city}</p>}
+                </div>
+                <div>
+                    <Input 
+                        placeholder="Code postal" 
+                        value={form.zip} 
+                        onChange={e => setForm(f => ({ ...f, zip: e.target.value }))} 
+                        className={errors.zip ? 'border-red-500' : ''}
+                    />
+                    {errors.zip && <p className="text-red-500 text-sm mt-1">{errors.zip}</p>}
+                </div>
+                <div>
+                    <Input 
+                        placeholder="Pays" 
+                        value={form.country} 
+                        onChange={e => setForm(f => ({ ...f, country: e.target.value }))} 
+                        className={errors.country ? 'border-red-500' : ''}
+                    />
+                    {errors.country && <p className="text-red-500 text-sm mt-1">{errors.country}</p>}
+                </div>
             </div>
             <div className="bg-white rounded-2xl p-6 flex flex-col gap-4">
                 <div className="text-lg font-semibold mb-1">Choix de la livraison</div>
-                <div className="text-sm text-gray-700 mb-2">Sélectionner l’option de livraison que vous voulez.</div>
+                <div className="text-sm text-gray-700 mb-2">Sélectionner l'option de livraison que vous voulez.</div>
                 <div className="flex gap-8 mb-2">
                     {deliveryModes.map(opt => (
                         <button
@@ -84,19 +265,20 @@ export default function DeliveryPage() {
                     <div className="bg-vapo-purple-light-2/40 rounded-xl p-4 flex items-center gap-4">
                         <div>
                             <div className="font-semibold text-vapo-purple-primary mb-1">Livraison express</div>
-                            <div className="text-sm text-vapo-purple-primary">La livraison express c’est une livraison le jour même, votre commande doit passé avant 17h.</div>
+                            <div className="text-sm text-vapo-purple-primary">La livraison express c'est une livraison le jour même, votre commande doit passé avant 17h.</div>
                         </div>
                     </div>
                 )}
                 {mode === 'planifiee' && (
                     <div>
                         <div className="font-semibold text-vapo-purple-primary mb-2">Choisissez les créneaux disponible.</div>
+                        {errors.hour && <p className="text-red-500 text-sm mb-2">{errors.hour}</p>}
                         <div className="flex gap-8">
                             {/* Calendar */}
                             <div>
                                 <div className="flex items-center justify-between mb-2">
                                     <button onClick={() => setSelectedDate(new Date(year, month - 1, 1))} className="text-vapo-purple-primary">{'<'}</button>
-                                    <span className="font-medium">Aout {year}</span>
+                                    <span className="font-medium">{monthNames[month]} {year}</span>
                                     <button onClick={() => setSelectedDate(new Date(year, month + 1, 1))} className="text-vapo-purple-primary">{'>'}</button>
                                 </div>
                                 <div className="grid grid-cols-7 gap-1 text-center text-xs text-gray-500 mb-1">
@@ -139,7 +321,14 @@ export default function DeliveryPage() {
                     </div>
                 )}
             </div>
-            <Button variant="vapo" className="w-full h-14 text-lg font-semibold mt-2">Valider ma commande</Button>
+            <Button 
+                variant="vapo" 
+                className="w-full h-14 text-lg font-semibold mt-2"
+                onClick={handleSubmit}
+                disabled={isSubmitting}
+            >
+                {isSubmitting ? 'Traitement en cours...' : 'Valider ma commande'}
+            </Button>
         </div>
     );
 }

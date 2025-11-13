@@ -15,7 +15,6 @@ import { RegisterPage } from "@/pages/public/auth/register-page";
 import IdentityVerificationPage from "@/pages/public/auth/identity-verification-page";
 import { LoginPage } from "@/pages/public/auth/login-page";
 import CartPage from '@/pages/public/general/cart-page';
-import CheckoutPage from '@/pages/public/checkout/checkout-page';
 import DeliveryPage from '@/pages/public/general/delivery-page';
 import SearchResultsPage from '@/pages/public/general/search-results-page';
 import CategoryProductsPage from '@/pages/public/catalog/category-products-page';
@@ -49,7 +48,7 @@ const privateRoutes: RouteObject[] = [
     },
     {
         path: '/checkout',
-        element: <CheckoutPage />,
+        element: <DeliveryPage />,
     },
 ];
 
