@@ -5,17 +5,21 @@ import { RadioGroup } from '@/shared/components/ui/radio-group';
 import { useCart, useCartMutations } from '@/app/cart';
 import { useCheckoutAddresses, useCheckoutPaymentMethods } from '@/app/checkout/hooks/use-checkout';
 import { formatPrice } from '@/lib/utils';
-import { ShoppingCart, MapPin, CreditCard, PackageCheck } from 'lucide-react';
+import { ShoppingCart, MapPin, CreditCard, PackageCheck, AlertTriangle } from 'lucide-react';
 import { simulatePayment } from '@/app/checkout/data/mock-checkout-data';
 import { Address, PaymentMethod } from '@/shared/types/api.types';
+import { AddressForm } from '@/pages/private/profile/addresses/address-form';
+import { PaymentMethodForm } from '@/pages/private/profile/payment-methods/payment-method-form';
+import { CartAPI } from '@/app/cart/api/cart-api';
+import { StockValidationResponse } from '@/app/cart/types';
 
 type CheckoutStep = 'address' | 'payment' | 'review' | 'processing';
 
 export default function CheckoutPage() {
   const navigate = useNavigate();
   const { cart, isLoading: isLoadingCart } = useCart();
-  const { addresses, isLoading: isLoadingAddresses } = useCheckoutAddresses();
-  const { paymentMethods, isLoading: isLoadingPaymentMethods } = useCheckoutPaymentMethods();
+  const { addresses, isLoading: isLoadingAddresses, refetch: refetchAddresses } = useCheckoutAddresses();
+  const { paymentMethods, isLoading: isLoadingPaymentMethods, refetch: refetchPaymentMethods } = useCheckoutPaymentMethods();
   const { createOrder } = useCartMutations();
 
   const [currentStep, setCurrentStep] = useState<CheckoutStep>('address');
@@ -23,6 +27,10 @@ export default function CheckoutPage() {
   const [selectedPaymentId, setSelectedPaymentId] = useState<string>('');
   const [isProcessingPayment, setIsProcessingPayment] = useState(false);
   const [paymentError, setPaymentError] = useState<string | null>(null);
+  const [showAddressForm, setShowAddressForm] = useState(false);
+  const [showPaymentForm, setShowPaymentForm] = useState(false);
+  const [stockValidation, setStockValidation] = useState<StockValidationResponse | null>(null);
+  const [isValidatingStock, setIsValidatingStock] = useState(false);
 
   // Redirect if cart is empty
   if (!isLoadingCart && (!cart || cart.items.length === 0)) {
@@ -67,9 +75,24 @@ export default function CheckoutPage() {
     setCurrentStep('processing');
     setIsProcessingPayment(true);
     setPaymentError(null);
+    setStockValidation(null);
 
     try {
-      // Simulate payment processing
+      // Step 1: Validate stock availability
+      setIsValidatingStock(true);
+      const stockResult = await CartAPI.validateStock();
+      setIsValidatingStock(false);
+
+      if (!stockResult.valid) {
+        // Stock validation failed - show error and go back to review
+        setStockValidation(stockResult);
+        setPaymentError('Certains produits ne sont plus disponibles en quantité suffisante. Veuillez mettre à jour votre panier.');
+        setIsProcessingPayment(false);
+        setCurrentStep('review');
+        return;
+      }
+
+      // Step 2: Process payment
       const paymentResult = await simulatePayment();
 
       if (!paymentResult.success) {
@@ -79,7 +102,7 @@ export default function CheckoutPage() {
         return;
       }
 
-      // Create order after successful payment
+      // Step 3: Create order after successful payment and stock validation
       const selectedAddress = addresses.find(a => a.id === selectedAddressId);
       const selectedPayment = paymentMethods.find(p => p.id === selectedPaymentId);
 
@@ -119,45 +142,68 @@ export default function CheckoutPage() {
 
       {isLoadingAddresses ? (
         <div className="text-gray-500">Chargement des adresses...</div>
-      ) : addresses.length === 0 ? (
-        <div className="text-gray-500">Aucune adresse disponible</div>
+      ) : addresses.length === 0 || showAddressForm ? (
+        <div>
+          <p className="text-gray-600 mb-4">
+            {addresses.length === 0 
+              ? "Vous n'avez pas encore d'adresse enregistrée. Veuillez en ajouter une pour continuer."
+              : "Ajouter une nouvelle adresse"}
+          </p>
+          <AddressForm
+            address={null}
+            onSuccess={() => {
+              setShowAddressForm(false);
+              refetchAddresses();
+            }}
+            onCancel={() => setShowAddressForm(false)}
+          />
+        </div>
       ) : (
-        <RadioGroup value={selectedAddressId} onValueChange={setSelectedAddressId}>
-          <div className="space-y-3">
-            {addresses.map((address: Address) => (
-              <label
-                key={address.id}
-                className={`flex items-start p-4 border rounded-lg cursor-pointer transition-colors ${
-                  selectedAddressId === address.id
-                    ? 'border-vapo-purple-primary bg-purple-50'
-                    : 'border-gray-200 hover:border-gray-300'
-                }`}
-              >
-                <input
-                  type="radio"
-                  name="address"
-                  value={address.id}
-                  checked={selectedAddressId === address.id}
-                  onChange={() => setSelectedAddressId(address.id)}
-                  className="mt-1 mr-3"
-                />
-                <div className="flex-1">
-                  <div className="font-semibold text-gray-900">{address.label}</div>
-                  <div className="text-sm text-gray-600 mt-1">
-                    {address.streetAddress}<br />
-                    {address.postalCode} {address.city}<br />
-                    {address.country}
+        <>
+          <RadioGroup value={selectedAddressId} onValueChange={setSelectedAddressId}>
+            <div className="space-y-3">
+              {addresses.map((address: Address) => (
+                <label
+                  key={address.id}
+                  className={`flex items-start p-4 border rounded-lg cursor-pointer transition-colors ${
+                    selectedAddressId === address.id
+                      ? 'border-vapo-purple-primary bg-purple-50'
+                      : 'border-gray-200 hover:border-gray-300'
+                  }`}
+                >
+                  <input
+                    type="radio"
+                    name="address"
+                    value={address.id}
+                    checked={selectedAddressId === address.id}
+                    onChange={() => setSelectedAddressId(address.id)}
+                    className="mt-1 mr-3"
+                  />
+                  <div className="flex-1">
+                    <div className="font-semibold text-gray-900">{address.label}</div>
+                    <div className="text-sm text-gray-600 mt-1">
+                      {address.streetAddress}<br />
+                      {address.postalCode} {address.city}<br />
+                      {address.country}
+                    </div>
+                    {address.isDefault && (
+                      <span className="inline-block mt-2 text-xs bg-vapo-purple-primary text-white px-2 py-1 rounded">
+                        Par défaut
+                      </span>
+                    )}
                   </div>
-                  {address.isDefault && (
-                    <span className="inline-block mt-2 text-xs bg-vapo-purple-primary text-white px-2 py-1 rounded">
-                      Par défaut
-                    </span>
-                  )}
-                </div>
-              </label>
-            ))}
-          </div>
-        </RadioGroup>
+                </label>
+              ))}
+            </div>
+          </RadioGroup>
+          <Button
+            variant="outline"
+            className="mt-4"
+            onClick={() => setShowAddressForm(true)}
+          >
+            Ajouter une nouvelle adresse
+          </Button>
+        </>
       )}
     </div>
   );
@@ -171,50 +217,72 @@ export default function CheckoutPage() {
 
       {isLoadingPaymentMethods ? (
         <div className="text-gray-500">Chargement des moyens de paiement...</div>
-      ) : paymentMethods.length === 0 ? (
-        <div className="text-gray-500">Aucun moyen de paiement disponible</div>
+      ) : paymentMethods.length === 0 || showPaymentForm ? (
+        <div>
+          <p className="text-gray-600 mb-4">
+            {paymentMethods.length === 0
+              ? "Vous n'avez pas encore de moyen de paiement enregistré. Veuillez en ajouter un pour continuer."
+              : "Ajouter un nouveau moyen de paiement"}
+          </p>
+          <PaymentMethodForm
+            onSuccess={() => {
+              setShowPaymentForm(false);
+              refetchPaymentMethods();
+            }}
+            onCancel={() => setShowPaymentForm(false)}
+          />
+        </div>
       ) : (
-        <RadioGroup value={selectedPaymentId} onValueChange={setSelectedPaymentId}>
-          <div className="space-y-3">
-            {paymentMethods.map((method: PaymentMethod) => (
-              <label
-                key={method.id}
-                className={`flex items-center p-4 border rounded-lg cursor-pointer transition-colors ${
-                  selectedPaymentId === method.id
-                    ? 'border-vapo-purple-primary bg-purple-50'
-                    : 'border-gray-200 hover:border-gray-300'
-                }`}
-              >
-                <input
-                  type="radio"
-                  name="payment"
-                  value={method.id}
-                  checked={selectedPaymentId === method.id}
-                  onChange={() => setSelectedPaymentId(method.id)}
-                  className="mr-3"
-                />
-                <div className="flex-1">
-                  <div className="font-semibold text-gray-900">{method.provider}</div>
-                  {method.last4 && (
-                    <div className="text-sm text-gray-600 mt-1">
-                      **** **** **** {method.last4}
-                      {method.expiryMonth && method.expiryYear && (
-                        <span className="ml-2">
-                          Exp: {method.expiryMonth.toString().padStart(2, '0')}/{method.expiryYear}
-                        </span>
-                      )}
-                    </div>
-                  )}
-                  {method.isDefault && (
-                    <span className="inline-block mt-2 text-xs bg-vapo-purple-primary text-white px-2 py-1 rounded">
-                      Par défaut
-                    </span>
-                  )}
-                </div>
-              </label>
-            ))}
-          </div>
-        </RadioGroup>
+        <>
+          <RadioGroup value={selectedPaymentId} onValueChange={setSelectedPaymentId}>
+            <div className="space-y-3">
+              {paymentMethods.map((method: PaymentMethod) => (
+                <label
+                  key={method.id}
+                  className={`flex items-center p-4 border rounded-lg cursor-pointer transition-colors ${
+                    selectedPaymentId === method.id
+                      ? 'border-vapo-purple-primary bg-purple-50'
+                      : 'border-gray-200 hover:border-gray-300'
+                  }`}
+                >
+                  <input
+                    type="radio"
+                    name="payment"
+                    value={method.id}
+                    checked={selectedPaymentId === method.id}
+                    onChange={() => setSelectedPaymentId(method.id)}
+                    className="mr-3"
+                  />
+                  <div className="flex-1">
+                    <div className="font-semibold text-gray-900">{method.provider}</div>
+                    {method.last4 && (
+                      <div className="text-sm text-gray-600 mt-1">
+                        **** **** **** {method.last4}
+                        {method.expiryMonth && method.expiryYear && (
+                          <span className="ml-2">
+                            Exp: {method.expiryMonth.toString().padStart(2, '0')}/{method.expiryYear}
+                          </span>
+                        )}
+                      </div>
+                    )}
+                    {method.isDefault && (
+                      <span className="inline-block mt-2 text-xs bg-vapo-purple-primary text-white px-2 py-1 rounded">
+                        Par défaut
+                      </span>
+                    )}
+                  </div>
+                </label>
+              ))}
+            </div>
+          </RadioGroup>
+          <Button
+            variant="outline"
+            className="mt-4"
+            onClick={() => setShowPaymentForm(true)}
+          >
+            Ajouter un nouveau moyen de paiement
+          </Button>
+        </>
       )}
     </div>
   );
@@ -232,7 +300,38 @@ export default function CheckoutPage() {
 
         {paymentError && (
           <div className="p-4 bg-red-50 border border-red-200 rounded-lg text-red-700">
-            {paymentError}
+            <div className="flex items-start gap-2">
+              <AlertTriangle className="w-5 h-5 mt-0.5 flex-shrink-0" />
+              <div className="flex-1">
+                <p className="font-semibold mb-1">{paymentError}</p>
+                {stockValidation && !stockValidation.valid && (
+                  <div className="mt-3 space-y-2">
+                    {stockValidation.items
+                      .filter(item => !item.isAvailable)
+                      .map((item) => {
+                        const cartItem = cart?.items.find(ci => ci.productId === item.productId);
+                        return (
+                          <div key={item.productId} className="text-sm bg-white p-3 rounded border border-red-200">
+                            <p className="font-medium text-gray-900">{cartItem?.name || 'Produit'}</p>
+                            <p className="text-gray-600 mt-1">
+                              Quantité demandée: {item.requestedQuantity} - 
+                              Disponible: {item.availableQuantity}
+                            </p>
+                          </div>
+                        );
+                      })}
+                    <Button 
+                      variant="outline" 
+                      size="sm"
+                      onClick={() => navigate('/cart')}
+                      className="mt-2"
+                    >
+                      Retour au panier
+                    </Button>
+                  </div>
+                )}
+              </div>
+            </div>
           </div>
         )}
 
@@ -286,8 +385,21 @@ export default function CheckoutPage() {
   const renderProcessingStep = () => (
     <div className="flex flex-col items-center justify-center py-12">
       <div className="w-16 h-16 border-4 border-vapo-purple-primary border-t-transparent rounded-full animate-spin mb-4" />
-      <h2 className="text-xl font-semibold mb-2">Traitement du paiement...</h2>
-      <p className="text-gray-600 text-center">Veuillez patienter pendant que nous traitons votre paiement</p>
+      {isValidatingStock ? (
+        <>
+          <h2 className="text-xl font-semibold mb-2">Vérification du stock...</h2>
+          <p className="text-gray-600 text-center">
+            Nous vérifions la disponibilité des produits
+          </p>
+        </>
+      ) : (
+        <>
+          <h2 className="text-xl font-semibold mb-2">Traitement du paiement...</h2>
+          <p className="text-gray-600 text-center">
+            Veuillez patienter pendant que nous traitons votre paiement
+          </p>
+        </>
+      )}
     </div>
   );
 
