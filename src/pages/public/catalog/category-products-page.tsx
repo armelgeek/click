@@ -20,7 +20,7 @@ export default function CategoryProductsPage() {
   const { categoryId } = useParams<{ categoryId: string }>();
   
   // Fetch category details
-  const { data: category, isLoading: categoryLoading } = useQuery({
+  const { data: category } = useQuery({
     queryKey: ['category', categoryId],
     queryFn: () => CategoriesAPI.getCategoryById(categoryId!),
     enabled: !!categoryId,

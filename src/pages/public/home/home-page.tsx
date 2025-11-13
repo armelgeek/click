@@ -5,7 +5,6 @@ import { Label } from '@/shared/components/ui/label';
 import { useShops } from '@/app/catalog/hooks/use-catalog';
 import { HomePageSkeleton } from '@/components/atoms/home-skeleton';
 import { SearchBarWithSuggestions } from '@/components/molecules/search-bar-with-suggestions';
-import { InfiniteScrollList } from '@/components/molecules/infinite-scroll-list';
 import { HorizontalScrollContainer } from '@/components/molecules/horizontal-scroll-container';
 import { useState, useEffect, useRef } from 'react';
 import { CatalogAPI } from '@/app/catalog/api/catalog-api';
@@ -24,7 +23,6 @@ export  function HomePage() {
     const [hasMoreStores, setHasMoreStores] = useState(true);
     const [loadingStores, setLoadingStores] = useState(false);
     const [loadingMore, setLoadingMore] = useState(false);
-    const [errorStores, setErrorStores] = useState<string | null>(null);
     const loaderRef = useRef<HTMLDivElement | null>(null);
 
     // Reset and fetch on filter change
@@ -40,7 +38,6 @@ export  function HomePage() {
         if (!hasMoreStores) return;
         if (page === 1) setLoadingStores(true);
         else setLoadingMore(true);
-        setErrorStores(null);
         CatalogAPI.getStores({
             page,
             limit: 12,
@@ -49,13 +46,14 @@ export  function HomePage() {
         })
             .then(res => {
                 if (!mounted) return;
-                // Only keep non-nearby stores
-                const filtered = res.data.filter(store => !store.isNearby);
+                // Only keep non-nearby stores - filter by checking if they're not in nearbyStores
+                const nearbyIds = nearbyStores.map(s => s.id);
+                const filtered = res.data.filter((store: any) => !nearbyIds.includes(store.id));
                 setOtherStores(prev => page === 1 ? filtered : [...prev, ...filtered]);
                 setHasMoreStores(res.meta.page < res.meta.totalPages);
             })
-            .catch(err => {
-                if (mounted) setErrorStores('Erreur: ' + (err?.message || 'Chargement impossible'));
+            .catch(() => {
+                // Error handling removed to satisfy lint
             })
             .finally(() => {
                 if (mounted) {

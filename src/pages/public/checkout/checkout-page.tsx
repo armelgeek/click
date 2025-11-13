@@ -8,14 +8,16 @@ import { formatPrice } from '@/lib/utils';
 import { ShoppingCart, MapPin, CreditCard, PackageCheck } from 'lucide-react';
 import { simulatePayment } from '@/app/checkout/data/mock-checkout-data';
 import { Address, PaymentMethod } from '@/shared/types/api.types';
+import { AddressForm } from '@/pages/private/profile/addresses/address-form';
+import { PaymentMethodForm } from '@/pages/private/profile/payment-methods/payment-method-form';
 
 type CheckoutStep = 'address' | 'payment' | 'review' | 'processing';
 
 export default function CheckoutPage() {
   const navigate = useNavigate();
   const { cart, isLoading: isLoadingCart } = useCart();
-  const { addresses, isLoading: isLoadingAddresses } = useCheckoutAddresses();
-  const { paymentMethods, isLoading: isLoadingPaymentMethods } = useCheckoutPaymentMethods();
+  const { addresses, isLoading: isLoadingAddresses, refetch: refetchAddresses } = useCheckoutAddresses();
+  const { paymentMethods, isLoading: isLoadingPaymentMethods, refetch: refetchPaymentMethods } = useCheckoutPaymentMethods();
   const { createOrder } = useCartMutations();
 
   const [currentStep, setCurrentStep] = useState<CheckoutStep>('address');
@@ -23,6 +25,8 @@ export default function CheckoutPage() {
   const [selectedPaymentId, setSelectedPaymentId] = useState<string>('');
   const [isProcessingPayment, setIsProcessingPayment] = useState(false);
   const [paymentError, setPaymentError] = useState<string | null>(null);
+  const [showAddressForm, setShowAddressForm] = useState(false);
+  const [showPaymentForm, setShowPaymentForm] = useState(false);
 
   // Redirect if cart is empty
   if (!isLoadingCart && (!cart || cart.items.length === 0)) {
@@ -119,45 +123,68 @@ export default function CheckoutPage() {
 
       {isLoadingAddresses ? (
         <div className="text-gray-500">Chargement des adresses...</div>
-      ) : addresses.length === 0 ? (
-        <div className="text-gray-500">Aucune adresse disponible</div>
+      ) : addresses.length === 0 || showAddressForm ? (
+        <div>
+          <p className="text-gray-600 mb-4">
+            {addresses.length === 0 
+              ? "Vous n'avez pas encore d'adresse enregistrée. Veuillez en ajouter une pour continuer."
+              : "Ajouter une nouvelle adresse"}
+          </p>
+          <AddressForm
+            address={null}
+            onSuccess={() => {
+              setShowAddressForm(false);
+              refetchAddresses();
+            }}
+            onCancel={() => setShowAddressForm(false)}
+          />
+        </div>
       ) : (
-        <RadioGroup value={selectedAddressId} onValueChange={setSelectedAddressId}>
-          <div className="space-y-3">
-            {addresses.map((address: Address) => (
-              <label
-                key={address.id}
-                className={`flex items-start p-4 border rounded-lg cursor-pointer transition-colors ${
-                  selectedAddressId === address.id
-                    ? 'border-vapo-purple-primary bg-purple-50'
-                    : 'border-gray-200 hover:border-gray-300'
-                }`}
-              >
-                <input
-                  type="radio"
-                  name="address"
-                  value={address.id}
-                  checked={selectedAddressId === address.id}
-                  onChange={() => setSelectedAddressId(address.id)}
-                  className="mt-1 mr-3"
-                />
-                <div className="flex-1">
-                  <div className="font-semibold text-gray-900">{address.label}</div>
-                  <div className="text-sm text-gray-600 mt-1">
-                    {address.streetAddress}<br />
-                    {address.postalCode} {address.city}<br />
-                    {address.country}
+        <>
+          <RadioGroup value={selectedAddressId} onValueChange={setSelectedAddressId}>
+            <div className="space-y-3">
+              {addresses.map((address: Address) => (
+                <label
+                  key={address.id}
+                  className={`flex items-start p-4 border rounded-lg cursor-pointer transition-colors ${
+                    selectedAddressId === address.id
+                      ? 'border-vapo-purple-primary bg-purple-50'
+                      : 'border-gray-200 hover:border-gray-300'
+                  }`}
+                >
+                  <input
+                    type="radio"
+                    name="address"
+                    value={address.id}
+                    checked={selectedAddressId === address.id}
+                    onChange={() => setSelectedAddressId(address.id)}
+                    className="mt-1 mr-3"
+                  />
+                  <div className="flex-1">
+                    <div className="font-semibold text-gray-900">{address.label}</div>
+                    <div className="text-sm text-gray-600 mt-1">
+                      {address.streetAddress}<br />
+                      {address.postalCode} {address.city}<br />
+                      {address.country}
+                    </div>
+                    {address.isDefault && (
+                      <span className="inline-block mt-2 text-xs bg-vapo-purple-primary text-white px-2 py-1 rounded">
+                        Par défaut
+                      </span>
+                    )}
                   </div>
-                  {address.isDefault && (
-                    <span className="inline-block mt-2 text-xs bg-vapo-purple-primary text-white px-2 py-1 rounded">
-                      Par défaut
-                    </span>
-                  )}
-                </div>
-              </label>
-            ))}
-          </div>
-        </RadioGroup>
+                </label>
+              ))}
+            </div>
+          </RadioGroup>
+          <Button
+            variant="outline"
+            className="mt-4"
+            onClick={() => setShowAddressForm(true)}
+          >
+            Ajouter une nouvelle adresse
+          </Button>
+        </>
       )}
     </div>
   );
@@ -171,50 +198,72 @@ export default function CheckoutPage() {
 
       {isLoadingPaymentMethods ? (
         <div className="text-gray-500">Chargement des moyens de paiement...</div>
-      ) : paymentMethods.length === 0 ? (
-        <div className="text-gray-500">Aucun moyen de paiement disponible</div>
+      ) : paymentMethods.length === 0 || showPaymentForm ? (
+        <div>
+          <p className="text-gray-600 mb-4">
+            {paymentMethods.length === 0
+              ? "Vous n'avez pas encore de moyen de paiement enregistré. Veuillez en ajouter un pour continuer."
+              : "Ajouter un nouveau moyen de paiement"}
+          </p>
+          <PaymentMethodForm
+            onSuccess={() => {
+              setShowPaymentForm(false);
+              refetchPaymentMethods();
+            }}
+            onCancel={() => setShowPaymentForm(false)}
+          />
+        </div>
       ) : (
-        <RadioGroup value={selectedPaymentId} onValueChange={setSelectedPaymentId}>
-          <div className="space-y-3">
-            {paymentMethods.map((method: PaymentMethod) => (
-              <label
-                key={method.id}
-                className={`flex items-center p-4 border rounded-lg cursor-pointer transition-colors ${
-                  selectedPaymentId === method.id
-                    ? 'border-vapo-purple-primary bg-purple-50'
-                    : 'border-gray-200 hover:border-gray-300'
-                }`}
-              >
-                <input
-                  type="radio"
-                  name="payment"
-                  value={method.id}
-                  checked={selectedPaymentId === method.id}
-                  onChange={() => setSelectedPaymentId(method.id)}
-                  className="mr-3"
-                />
-                <div className="flex-1">
-                  <div className="font-semibold text-gray-900">{method.provider}</div>
-                  {method.last4 && (
-                    <div className="text-sm text-gray-600 mt-1">
-                      **** **** **** {method.last4}
-                      {method.expiryMonth && method.expiryYear && (
-                        <span className="ml-2">
-                          Exp: {method.expiryMonth.toString().padStart(2, '0')}/{method.expiryYear}
-                        </span>
-                      )}
-                    </div>
-                  )}
-                  {method.isDefault && (
-                    <span className="inline-block mt-2 text-xs bg-vapo-purple-primary text-white px-2 py-1 rounded">
-                      Par défaut
-                    </span>
-                  )}
-                </div>
-              </label>
-            ))}
-          </div>
-        </RadioGroup>
+        <>
+          <RadioGroup value={selectedPaymentId} onValueChange={setSelectedPaymentId}>
+            <div className="space-y-3">
+              {paymentMethods.map((method: PaymentMethod) => (
+                <label
+                  key={method.id}
+                  className={`flex items-center p-4 border rounded-lg cursor-pointer transition-colors ${
+                    selectedPaymentId === method.id
+                      ? 'border-vapo-purple-primary bg-purple-50'
+                      : 'border-gray-200 hover:border-gray-300'
+                  }`}
+                >
+                  <input
+                    type="radio"
+                    name="payment"
+                    value={method.id}
+                    checked={selectedPaymentId === method.id}
+                    onChange={() => setSelectedPaymentId(method.id)}
+                    className="mr-3"
+                  />
+                  <div className="flex-1">
+                    <div className="font-semibold text-gray-900">{method.provider}</div>
+                    {method.last4 && (
+                      <div className="text-sm text-gray-600 mt-1">
+                        **** **** **** {method.last4}
+                        {method.expiryMonth && method.expiryYear && (
+                          <span className="ml-2">
+                            Exp: {method.expiryMonth.toString().padStart(2, '0')}/{method.expiryYear}
+                          </span>
+                        )}
+                      </div>
+                    )}
+                    {method.isDefault && (
+                      <span className="inline-block mt-2 text-xs bg-vapo-purple-primary text-white px-2 py-1 rounded">
+                        Par défaut
+                      </span>
+                    )}
+                  </div>
+                </label>
+              ))}
+            </div>
+          </RadioGroup>
+          <Button
+            variant="outline"
+            className="mt-4"
+            onClick={() => setShowPaymentForm(true)}
+          >
+            Ajouter un nouveau moyen de paiement
+          </Button>
+        </>
       )}
     </div>
   );
