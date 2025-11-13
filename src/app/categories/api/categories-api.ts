@@ -44,8 +44,7 @@ export class CategoriesAPI {
       { params }
     );
 
-    const { data: items = [], meta } = response.data;
-    const { total, page, limit, totalPages } = meta;
+    const { data: items = [], total, page, limit, totalPages } = response.data;
 
     const formattedData: CategoryProduct[] = items.map((item) => ({
       id: item.id,

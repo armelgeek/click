@@ -192,7 +192,7 @@ export class OrdersAPI {
     return response.data;
   }
 
-  static async getOrderTracking(orderId: string): Promise<OrderTracking> {
+  static async getOrderTracking(_orderId: string): Promise<OrderTracking> {
     // This should use DeliveryAPI instead
     throw new Error('Use DeliveryAPI.getOrderTracking() instead');
   }

@@ -95,7 +95,12 @@ export function useStoreProducts(storeId?: string, params: ProductsQueryParams =
       setError(null);
       const response = await CatalogAPI.getStoreProducts(storeId, { page, limit, search });
       setProducts(response.data);
-      setMeta(response.meta);
+      setMeta({
+        total: response.total,
+        page: response.page,
+        limit: response.limit,
+        totalPages: response.totalPages,
+      });
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to fetch products');
     } finally {
@@ -124,7 +129,12 @@ export function useProducts(params: ProductsQueryParams = {}) {
       setError(null);
       const response = await CatalogAPI.getAllProducts({ page, limit, search });
       setProducts(response.data);
-      setMeta(response.meta);
+      setMeta({
+        total: response.total,
+        page: response.page,
+        limit: response.limit,
+        totalPages: response.totalPages,
+      });
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to fetch products');
     } finally {
