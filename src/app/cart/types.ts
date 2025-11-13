@@ -57,6 +57,19 @@ export const orderResponseSchema = z.object({
   order: orderSchema,
 });
 
+export const stockValidationItemSchema = z.object({
+  productId: z.string(),
+  requestedQuantity: z.number(),
+  availableQuantity: z.number(),
+  isAvailable: z.boolean(),
+});
+
+export const stockValidationResponseSchema = z.object({
+  valid: z.boolean(),
+  items: z.array(stockValidationItemSchema),
+  message: z.string().optional(),
+});
+
 export type CartItem = z.infer<typeof cartItemSchema>;
 export type Cart = z.infer<typeof cartSchema>;
 export type AddToCartPayload = z.infer<typeof addToCartSchema>;
@@ -65,3 +78,5 @@ export type CreateOrderPayload = z.infer<typeof createOrderSchema>;
 export type Order = z.infer<typeof orderSchema>;
 export type CartResponse = z.infer<typeof cartResponseSchema>;
 export type OrderResponse = z.infer<typeof orderResponseSchema>;
+export type StockValidationItem = z.infer<typeof stockValidationItemSchema>;
+export type StockValidationResponse = z.infer<typeof stockValidationResponseSchema>;

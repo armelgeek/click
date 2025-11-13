@@ -3,7 +3,8 @@ import {
   CreateOrderPayload, 
   Order,
   CartResponse,
-  OrderResponse
+  OrderResponse,
+  StockValidationResponse
 } from '../types';
 import { apiClient, API_ENDPOINTS } from '@/shared/config/api.config';
 
@@ -97,5 +98,12 @@ export class CartAPI {
     return {
       orders: response.data.data
     };
+  }
+
+  static async validateStock(): Promise<StockValidationResponse> {
+    const response = await apiClient.post<StockValidationResponse>(
+      API_ENDPOINTS.cart.validateStock
+    );
+    return response.data;
   }
 }
