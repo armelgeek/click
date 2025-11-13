@@ -192,9 +192,12 @@ export const useCartMutations = () => {
       if (data?.cart) {
         useCartStore.getState().setCartData(data.cart);
         try {
-          const updatedAt = (data.cart as any).updatedAt || new Date().toISOString();
+          const updatedAt = (data.cart as unknown as { updatedAt?: string }).updatedAt || new Date().toISOString();
           localStorage.setItem('cart-local-updatedAt', updatedAt);
-        } catch (e) {}
+        } catch (e) {
+          // Ignore localStorage errors
+          console.warn('Failed to save cart updatedAt', e);
+        }
       }
     },
     onError: (error) => {
