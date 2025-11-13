@@ -6,13 +6,14 @@ import { Input } from '@/shared/components/ui/input';
 import { PasswordInput } from '@/components/atoms/password-input';
 import { Button } from '@/shared/components/ui/button';
 import { Switch } from '@/shared/components/ui/switch';
-import { User, Lock, Settings, Bell, MapPin } from 'lucide-react';
+import { User, Lock, Settings, Bell, MapPin, CreditCard, ChevronRight } from 'lucide-react';
 import PhoneInput from 'react-phone-number-input';
 import 'react-phone-number-input/style.css';
 import { useProfile } from '@/app/profile/hooks/use-profile';
 import { usePasswordChange } from '@/app/profile/hooks/use-password-change';
 import { useAppSettings } from '@/app/profile/hooks/use-app-settings';
 import { useGeolocation } from '@/app/location';
+import { Link } from 'react-router';
 import {
     profileUpdateSchema,
     passwordChangeSchema,
@@ -163,6 +164,44 @@ export default function ProfileHomePage() {
                     </button>
                 </div>
             )}
+
+            {/* Quick Links Section */}
+            <div>
+                <h2 className="text-vapo-purple-primary text-xl font-bold mb-4">Accès rapide</h2>
+                <div className="grid gap-3">
+                    <Link
+                        to="/profile/addresses"
+                        className="bg-white rounded-xl p-4 flex items-center justify-between hover:border-vapo-purple-primary border border-gray-200 transition-colors"
+                    >
+                        <div className="flex items-center gap-3">
+                            <div className="w-10 h-10 bg-purple-100 rounded-lg flex items-center justify-center">
+                                <MapPin className="text-vapo-purple-primary w-5 h-5" />
+                            </div>
+                            <div>
+                                <h3 className="font-semibold text-gray-900">Mes adresses</h3>
+                                <p className="text-sm text-gray-600">Gérer vos adresses de livraison</p>
+                            </div>
+                        </div>
+                        <ChevronRight className="text-gray-400 w-5 h-5" />
+                    </Link>
+
+                    <Link
+                        to="/profile/payment-methods"
+                        className="bg-white rounded-xl p-4 flex items-center justify-between hover:border-vapo-purple-primary border border-gray-200 transition-colors"
+                    >
+                        <div className="flex items-center gap-3">
+                            <div className="w-10 h-10 bg-purple-100 rounded-lg flex items-center justify-center">
+                                <CreditCard className="text-vapo-purple-primary w-5 h-5" />
+                            </div>
+                            <div>
+                                <h3 className="font-semibold text-gray-900">Moyens de paiement</h3>
+                                <p className="text-sm text-gray-600">Gérer vos moyens de paiement</p>
+                            </div>
+                        </div>
+                        <ChevronRight className="text-gray-400 w-5 h-5" />
+                    </Link>
+                </div>
+            </div>
 
             <div>
                 <div className="flex items-center gap-2 mb-4">

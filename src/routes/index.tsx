@@ -25,6 +25,8 @@ import OrderProofPage from '@/pages/public/orders/order-proof-page';
 import OrderSignatureProofPage from '@/pages/public/orders/order-signature-proof-page';
 import OrderDetailPage from '@/pages/public/orders/order-detail-page';
 import ProfileHomePage from "@/pages/private/profile/home/profile-home-page";
+import AddressesPage from "@/pages/private/profile/addresses/addresses-page";
+import PaymentMethodsPage from "@/pages/private/profile/payment-methods/payment-methods-page";
 import { AuthGuard } from "./auth-guard";
 
 const privateRoutes: RouteObject[] = [
@@ -34,6 +36,14 @@ const privateRoutes: RouteObject[] = [
             {
                 path: 'home',
                 element: <ProfileHomePage />
+            },
+            {
+                path: 'addresses',
+                element: <AddressesPage />
+            },
+            {
+                path: 'payment-methods',
+                element: <PaymentMethodsPage />
             }
         ],
     },
