@@ -70,6 +70,7 @@ export interface LegacyProduct {
   description?: string;
   shopId: string;
   categoryId: string;
+  quantity?: number; // Optional quantity for compatibility
 }
 
 export interface ShopsResponse {

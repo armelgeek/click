@@ -13,6 +13,7 @@ interface Product {
   name: string;
   price: number;
   image?: string;
+  quantity?: number;
 }
 
 export default function CategoryProductsPage() {
@@ -136,6 +137,7 @@ export default function CategoryProductsPage() {
                 image={product.image || '/icons/product.png'}
                 title={product.name}
                 subtitle={typeof product.price === 'number' ? product.price.toFixed(2) + ' €' : '—'}
+                stock={product.quantity}
               />
             </button>
           )}

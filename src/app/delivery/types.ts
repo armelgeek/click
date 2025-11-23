@@ -18,14 +18,14 @@ export interface DeliveryLocation {
   landmark?: string;
 }
 
-export type DeliveryStatus = 
-  | 'preparing' 
-  | 'ready' 
-  | 'picked_up' 
-  | 'on_the_way' 
-  | 'nearby' 
-  | 'delivered' 
-  | 'failed' 
+export type DeliveryStatus =
+  | 'preparing'
+  | 'ready'
+  | 'picked_up'
+  | 'on_the_way'
+  | 'nearby'
+  | 'delivered'
+  | 'failed'
   | 'returned';
 
 export interface DeliveryTracking {
@@ -41,6 +41,9 @@ export interface DeliveryTracking {
   canCall: boolean;
   canMessage: boolean;
   lastUpdated: string;
+  estimatedArrival: string;
+  totalDistance?: number;
+  distanceTraveled?: number;
 }
 
 export interface DeliveryTimelineItem {

@@ -31,6 +31,7 @@ export interface Address {
 }
 
 export interface CreateAddressPayload {
+  userId?: string; // made optional — backend infers user from auth when possible
   label: string;
   streetAddress: string;
   city: string;

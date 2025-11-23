@@ -39,12 +39,12 @@ export const API_ENDPOINTS = {
     saved: '/cart/saved',
     validateStock: '/cart/validate-stock',
   },
-  
+
   // Orders Management
   orders: {
     create: '/orders',
     list: '/orders',
-    detail: (orderId: string) => `/orders/${orderId}`,
+    detail: (orderId: string, userId: string) => `/orders/${orderId}?userId=${userId}`,
     statistics: '/orders/statistics',
     cancel: (orderId: string) => `/orders/${orderId}/cancel`,
     return: (orderId: string) => `/orders/${orderId}/return`,
@@ -54,7 +54,7 @@ export const API_ENDPOINTS = {
     invoice: (orderId: string) => `/orders/${orderId}/invoice`,
     confirmDelivery: (orderId: string) => `/orders/${orderId}/confirm-delivery`,
   },
-  
+
   // Payment Processing
   payment: {
     intent: '/payment/intent',
@@ -62,7 +62,7 @@ export const API_ENDPOINTS = {
     webhook: '/payment/webhook',
     simulateError: '/payment/simulate-error',
   },
-  
+
   // Search & Categories
   search: {
     global: '/search',
@@ -73,7 +73,7 @@ export const API_ENDPOINTS = {
     detail: (categoryId: string) => `/categories/${categoryId}`,
     products: (categoryId: string) => `/categories/${categoryId}/products`,
   },
-  
+
   // Stores & Products
   stores: {
     list: '/stores',
@@ -85,9 +85,9 @@ export const API_ENDPOINTS = {
     list: '/products',
     detail: (id: string) => `/products/${id}`,
     similar: (id: string) => `/products/${id}/similar`,
-    stock: (productId: string) => `/products/${productId}/stock`,
+    stock: (productId: string) => `/products/${productId}/availability`,
   },
-  
+
   // User Addresses
   addresses: {
     list: '/users/addresses',
@@ -96,7 +96,7 @@ export const API_ENDPOINTS = {
     delete: (addressId: string) => `/users/addresses/${addressId}`,
     setDefault: (addressId: string) => `/users/addresses/${addressId}/default`,
   },
-  
+
   // User Payment Methods
   paymentMethods: {
     list: '/users/payment-methods',
@@ -104,10 +104,10 @@ export const API_ENDPOINTS = {
     delete: (paymentId: string) => `/users/payment-methods/${paymentId}`,
     setDefault: (paymentId: string) => `/users/payment-methods/${paymentId}/default`,
   },
-  
+
   // Delivery & Tracking
   delivery: {
-    tracking: (orderId: string) => `/delivery/${orderId}/tracking`,
+    tracking: (orderId: string, userId: string) => `/orders/${orderId}/tracking?userId=${userId}`,
     statusUpdates: (orderId: string) => `/delivery/${orderId}/status-updates`,
     callDriver: (orderId: string) => `/delivery/${orderId}/call-driver`,
     sendMessage: (orderId: string) => `/delivery/${orderId}/message`,

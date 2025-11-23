@@ -32,29 +32,28 @@ export const useOrders = () => {
   };
 };
 
-/**
- * Hook to get a specific order by ID
- */
-export const useOrder = (orderId?: string) => {
+export const useOrder = (orderId?: string, userId?: string) => {
   const queryClient = useQueryClient();
 
   const query = useQuery({
     queryKey: orderKeys.detail(orderId || ''),
     queryFn: async () => {
-      const order = await OrdersAPI.getOrderById(orderId!);
+      if (!orderId || !userId) {
+        throw new Error('orderId and userId are required');
+      }
+      const order = await OrdersAPI.getOrderById(orderId, userId);
       return { order };
     },
-    enabled: !!orderId,
+    enabled: !!orderId && !!userId,
     staleTime: CART_STALE_TIME.ORDERS,
     gcTime: CART_CACHE_TIME.ORDERS,
   });
 
-  const invalidate = () => {
-    return queryClient.invalidateQueries({
+  const invalidate = () =>
+    queryClient.invalidateQueries({
       queryKey: orderKeys.detail(orderId || ''),
       refetchType: 'all',
     });
-  };
 
   return {
     ...query,

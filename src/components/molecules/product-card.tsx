@@ -2,11 +2,12 @@ interface ProductCardProps {
     image: string;
     title: string;
     subtitle?: string;
+    stock?: number | null;
     className?: string;
 }
-export default function ProductCard({ image, title, subtitle, className = '' }: ProductCardProps) {
+export default function ProductCard({ image, title, subtitle, stock = null, className = '' }: ProductCardProps) {
     return (
-        <div className={`bg-white rounded-lg shadow-sm hover:shadow-md transition-shadow duration-200 flex flex-col w-full ${className}`}>
+        <div className={`relative bg-white rounded-lg shadow-sm hover:shadow-md transition-shadow duration-200 flex flex-col w-full ${className}`}>
             <div className="aspect-square w-full p-4 flex items-center justify-center bg-gray-50 rounded-t-lg">
                 <img 
                     src={image} 
@@ -15,6 +16,7 @@ export default function ProductCard({ image, title, subtitle, className = '' }: 
                     onError={(e) => { e.currentTarget.src = '/icons/product.png'; }}
                 />
             </div>
+          
             <div className="p-4 flex flex-col">
                 <h3
                     className="text-gray-800 text-sm font-medium line-clamp-2"

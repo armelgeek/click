@@ -1,13 +1,120 @@
 import { useParams, useNavigate } from 'react-router';
-import { ArrowLeft, Clock, MapPin, Phone, User } from 'lucide-react';
-import { useOrder } from '@/app/orders';
+import { Clock, Phone, Package, XCircle, RotateCcw, CheckCircle, TimerIcon, MessageCircle } from 'lucide-react';
+import type { Order } from '@/app/orders/types/order.schema';
+import type { UseMutationResult } from '@tanstack/react-query';
+import type { DeliveryConfirmationPayload } from '@/shared/types/api.types';
+import { useConfirmDelivery } from '@/app/orders/hooks/use-confirm-delivery';
 import { LoadingSpinner } from '@/components/atoms/loading-spinner';
 import { Button } from '@/shared/components/ui/button';
+import { useState } from 'react';
+import SignaturePad from '@/components/atoms/signature-pad';
+import { useSession } from '@/shared/config/auth.config';
+import { useOrder } from '@/app/cart';
+import OrderHeader from '@/components/organisms/order-header';
+import { useDeliveryTracking } from '@/app/delivery';
+import OrderDeliveryStatus from '@/components/organisms/order-delivery-status';
+import { format } from 'date-fns';
+import { fr } from 'date-fns/locale';
+import OrderProofSection from '@/components/organisms/order-proof-section';
+ function DeliveryProofSection({ order, confirmDelivery }: { order: Order, confirmDelivery: UseMutationResult<{ success: boolean; message: string }, unknown, { orderId: string; payload: DeliveryConfirmationPayload }, unknown> }) {
+    const [showSignature, setShowSignature] = useState(false);
+    const [signaturePreview, setSignaturePreview] = useState<string | null>(null);
+    const [photoPreview, setPhotoPreview] = useState<string | null>(null);
 
+    return (
+      <div className="my-6 space-y-4">
+        <div className="flex flex-col gap-2">
+          <label className="block">
+            <span className="text-sm font-medium">Ajouter une photo de livraison</span>
+            <input
+              type="file"
+              accept="image/*"
+              className="block mt-1"
+              onChange={async (e) => {
+                const file = e.target.files?.[0];
+                if (!file) return;
+                const reader = new FileReader();
+                reader.onloadend = () => {
+                  const photoUrl = reader.result as string;
+                  setPhotoPreview(photoUrl as string);
+                  confirmDelivery.mutate({
+                    orderId: order.id,
+                    payload: { photoUrl },
+                  });
+                };
+                reader.readAsDataURL(file);
+              }}
+              disabled={confirmDelivery.isPending || confirmDelivery.isSuccess}
+            />
+          </label>
+          {/* Prévisualisation de la photo */}
+          {photoPreview && (
+            <img
+              src={photoPreview}
+              alt="Preuve de livraison (photo)"
+              className="w-full max-w-xs rounded-lg border mx-auto my-2"
+            />
+          )}
+        </div>
+        <div className="flex flex-col gap-2">
+          <span className="text-sm font-medium">Ou signer la réception</span>
+          {!showSignature && !signaturePreview && (
+            <Button
+              variant="outline"
+              className="w-full"
+              onClick={() => setShowSignature(true)}
+              disabled={confirmDelivery.isPending || confirmDelivery.isSuccess}
+            >
+              Saisir une signature
+            </Button>
+          )}
+          {showSignature && !signaturePreview && (
+            <SignaturePad
+              onSave={(dataUrl) => {
+                setSignaturePreview(dataUrl);
+                confirmDelivery.mutate({
+                  orderId: order.id,
+                  payload: { signature: dataUrl },
+                });
+                setShowSignature(false);
+              }}
+              onCancel={() => setShowSignature(false)}
+            />
+          )}
+          {signaturePreview && (
+            <img
+              src={signaturePreview}
+              alt="Signature de livraison"
+              className="w-full max-w-xs rounded-lg border mx-auto my-2"
+            />
+          )}
+        </div>
+        <Button
+          variant="vapo"
+          className="w-full"
+          disabled={confirmDelivery.isPending || confirmDelivery.isSuccess}
+          onClick={() => {
+            confirmDelivery.mutate({
+              orderId: order.id,
+              payload: {},
+            });
+          }}
+        >
+          {confirmDelivery.isSuccess ? 'Confirmation de livraison effectuée' : 'Confirmer la livraison sans preuve'}
+        </Button>
+        {confirmDelivery.isError && (
+          <div className="text-red-500 text-center mt-2">Erreur lors de la confirmation</div>
+        )}
+      </div>
+    );
+  }
 export default function OrderDetailPage() {
   const { orderId } = useParams<{ orderId: string }>();
+  const { data: session } = useSession();
   const navigate = useNavigate();
-  const { data: order, isLoading, error } = useOrder(orderId!);
+  const confirmDelivery = useConfirmDelivery();
+  const { data: order, isLoading, error } = useOrder(orderId!, session?.user.id || '');
+  const { data: trackingData, isLoading: isTrackingLoading } = useDeliveryTracking(orderId || '', session?.user.id || '');
 
   if (isLoading) {
     return (
@@ -30,118 +137,154 @@ export default function OrderDetailPage() {
     );
   }
 
+  function formatEstimatedArrival(dateString?: string) {
+    if (!dateString) return '';
+    const date = new Date(dateString);
+    if (isNaN(date.getTime())) return dateString;
+    let formatted = format(date, "dd MMMM yyyy 'à' HH'h'mm", { locale: fr });
+    const parts = formatted.split(' ');
+    if (parts.length >= 2) {
+      parts[1] = parts[1].charAt(0).toUpperCase() + parts[1].slice(1);
+      formatted = parts.join(' ');
+    }
+    return formatted;
+  }
+
+  const orderStatus = 'delivered';
+  const tracking = trackingData?.tracking;
+
+  // Déterminer quel contenu afficher selon le statut
+  const showOnPending = orderStatus === 'pending';
+  const showOnConfirmed = orderStatus === 'confirmed';
+  const showOnPreparing = orderStatus === 'preparing';
+  const showOnOutForDelivery = orderStatus === 'out_for_delivery';
+  const showOnDelivered = orderStatus === 'delivered';
+  const showOnCancelled = orderStatus === 'cancelled';
+  const showOnReturned = orderStatus === 'returned';
+
   return (
     <div className="min-h-screen p-4">
-      <div className="flex items-center gap-2 mb-6">
-        <button 
-          onClick={() => navigate('/orders/history')}
-          className="text-vapo-purple-primary hover:text-vapo-purple-primary/80"
-        >
-          <ArrowLeft className="w-5 h-5" />
-        </button>
-        <span className="text-vapo-purple-primary text-xl font-semibold">
-          Commande #{order.number}
-        </span>
-      </div>
+      <OrderHeader
+        orderId={order.order.id}
+        status={order.order.status}
+        statusColor={order.order.statusColor}
+      />
 
-      <div className="space-y-6">
-        <div className="bg-vapo-purple-primary/90 rounded-2xl p-5">
-          <div className="flex items-center gap-2 mb-3">
-            <span className={`w-3 h-3 rounded-full ${order.statusColor}`} />
-            <span className="text-white text-lg font-semibold">{order.statusLabel}</span>
+      {/* Statut: En attente */}
+      {showOnPending && (
+        <div className="mt-6 bg-yellow-50 border border-yellow-200 rounded-lg p-6">
+          <div className="flex items-center gap-3 mb-3">
+            <Clock className="w-6 h-6 text-yellow-600" />
+            <h3 className="text-lg font-semibold text-yellow-900">Commande en attente</h3>
           </div>
-          <div className="flex items-center gap-2 text-white/80">
-            <Clock className="w-4 h-4" />
-            <span>Commandé le {order.date}</span>
-          </div>
-          {order.estimatedDelivery && (
-            <div className="flex items-center gap-2 text-white/80 mt-1">
-              <MapPin className="w-4 h-4" />
-              <span>Livraison prévue: {order.estimatedDelivery}</span>
-            </div>
-          )}
+          <p className="text-yellow-800">
+            Votre commande est en attente de confirmation par le magasin.
+          </p>
         </div>
+      )}
 
-        <div className="bg-white rounded-2xl p-5 shadow-sm">
-          <h3 className="text-lg font-semibold mb-4">Articles commandés</h3>
+      {/* Statut: Confirmée */}
+      {showOnConfirmed && (
+        <div className="mt-2 bg-blue-50 border border-blue-200 rounded-lg p-6">
+          <div className="flex items-center gap-3 mb-3">
+            <CheckCircle className="w-6 h-6 text-blue-600" />
+            <h3 className="text-lg font-semibold text-blue-900">Commande confirmée</h3>
+          </div>
+          <p className="text-blue-800">
+            Votre commande a été confirmée par le magasin et sera bientôt préparée.
+          </p>
+        </div>
+      )}
+
+      {/* Statut: En préparation */}
+      {showOnPreparing && (
+        <div className="mt-2 bg-orange-50 border border-orange-200 rounded-lg p-6">
+          <div className="flex items-center gap-3 mb-3">
+            <Package className="w-6 h-6 text-orange-600" />
+            <h3 className="text-lg font-semibold text-orange-900">Commande en préparation</h3>
+          </div>
+          <p className="text-orange-800">
+            Le magasin prépare votre commande avec soin. Elle sera bientôt prête pour la livraison.
+          </p>
+        </div>
+      )}
+
+      {/* Statut: En cours de livraison */}
+      {showOnDelivered && tracking && (
+        <div className="flex flex-col gap-3">
+          <OrderDeliveryStatus
+            eta={formatEstimatedArrival(tracking.estimatedArrival)}
+            driverName={tracking.driver ? tracking.driver.name : 'Livreur non affecté'}
+            totalDistance={tracking.totalDistance || 4}
+            distanceTraveled={tracking.distanceTraveled || 2}
+            destination={tracking.destination ? tracking.destination.address : 'Destination non disponible'}
+            lastUpdated={tracking.lastUpdated}
+          />
+           <DeliveryProofSection order={order.order} confirmDelivery={confirmDelivery}/>
+        </div>
+      )}
+
+      {showOnOutForDelivery && (
+        <>
+          <div className="mt-6 bg-white border border-white rounded-lg p-6">
+            <div className="flex items-center gap-3 mb-3">
+              <h3 className="text-lg font-semibold">Suivi de livraison</h3>
+            </div>
+            <div className="flex items-center gap-2 text-gray-800">
+              <TimerIcon className="w-5 h-5 mr-1 text-vapo-purple-primary" />
+              Estimation de livraison : <span className="font-medium  text-sm text-vapo-purple-primary">{tracking?.estimatedTimeMinutes} minutes</span>
+            </div>
+          </div>
+          <img src="/map.svg" alt="Tracking Map" className="w-full h-auto mt-4" />
+
+
           <div className="space-y-3">
-            {order.items.map(item => (
-              <div key={item.id} className="flex items-center justify-between border-b pb-3 last:border-b-0">
-                <div className="flex-1">
-                  <p className="font-medium">{item.name}</p>
-                  <p className="text-gray-500 text-sm">Quantité: {item.quantity}</p>
-                </div>
-                <p className="font-semibold">{item.price.toFixed(2)} {order.currency}</p>
-              </div>
-            ))}
-          </div>
-          <div className="border-t pt-3 mt-3">
-            <div className="flex justify-between items-center text-lg font-bold">
-              <span>Total</span>
-              <span>{order.totalAmount.toFixed(2)} {order.currency}</span>
-            </div>
-          </div>
-        </div>
-
-        <div className="bg-white rounded-2xl p-5 shadow-sm">
-          <h3 className="text-lg font-semibold mb-4">Adresse de livraison</h3>
-          <p className="text-gray-700">{order.deliveryAddress}</p>
-        </div>
-
-        {order.tracking && (
-          <div className="bg-white rounded-2xl p-5 shadow-sm">
-            <h3 className="text-lg font-semibold mb-4">Suivi de livraison</h3>
-            <div className="space-y-3">
-              <div className="flex items-center gap-2">
-                <User className="w-4 h-4 text-vapo-purple-primary" />
-                <span>Livreur: {order.tracking.driverName}</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <Phone className="w-4 h-4 text-vapo-purple-primary" />
-                <span>{order.tracking.driverPhone}</span>
-              </div>
-              {order.tracking.estimatedArrival && (
-                <div className="flex items-center gap-2">
-                  <Clock className="w-4 h-4 text-vapo-purple-primary" />
-                  <span>Arrivée estimée: {order.tracking.estimatedArrival}</span>
-                </div>
-              )}
-            </div>
-            <div className="mt-4 space-y-2">
-              <Button 
-                variant="vapo" 
-                className="w-full"
-                onClick={() => navigate(`/orders/${order.id}/tracking`)}
+            <div className="flex items-center justify-between mt-2 gap-4">
+              <Button
+                variant="vapo-secondary"
+                className="flex-1">
+                <Phone className="w-4 h-4" />
+                Appeler
+              </Button>
+              <Button
+                variant="vapo-secondary"
+                className="flex-1"
               >
-                Suivre en temps réel
+                <MessageCircle className="w-4 h-4" />
+                Message
               </Button>
             </div>
           </div>
-        )}
 
-        {order.proofOfDelivery && (
-          <div className="bg-white rounded-2xl p-5 shadow-sm">
-            <h3 className="text-lg font-semibold mb-4">Preuve de livraison</h3>
-            <div className="space-y-2">
-              <p className="text-sm text-gray-600">
-                Type: {order.proofOfDelivery.type === 'photo' ? 'Photo' : 'Signature'}
-              </p>
-              {order.proofOfDelivery.timestamp && (
-                <p className="text-sm text-gray-600">
-                  Livré le: {order.proofOfDelivery.timestamp}
-                </p>
-              )}
-              <Button 
-                variant="outline" 
-                className="w-full"
-                onClick={() => navigate(`/orders/${order.id}/proof`)}
-              >
-                Voir la preuve de livraison
-              </Button>
-            </div>
+          <OrderProofSection  />
+        </>
+      )}
+
+      {/* Statut: Annulée */}
+      {showOnCancelled && (
+        <div className="mt-6 bg-red-50 border border-red-200 rounded-lg p-6">
+          <div className="flex items-center gap-3 mb-3">
+            <XCircle className="w-6 h-6 text-red-600" />
+            <h3 className="text-lg font-semibold text-red-900">Commande annulée</h3>
           </div>
-        )}
-      </div>
+          <p className="text-red-800">
+            Cette commande a été annulée. Si vous avez des questions, n'hésitez pas à nous contacter.
+          </p>
+        </div>
+      )}
+
+      {/* Statut: Retournée */}
+      {showOnReturned && (
+        <div className="mt-6 bg-gray-50 border border-gray-200 rounded-lg p-6">
+          <div className="flex items-center gap-3 mb-3">
+            <RotateCcw className="w-6 h-6 text-gray-600" />
+            <h3 className="text-lg font-semibold text-gray-900">Commande retournée</h3>
+          </div>
+          <p className="text-gray-800">
+            Cette commande a été retournée. Un remboursement sera traité dans les prochains jours.
+          </p>
+        </div>
+      )}
     </div>
   );
 }

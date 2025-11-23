@@ -154,7 +154,7 @@ export class CatalogAPI {
 
    const response = await apiClient.get(API_ENDPOINTS.stores.by(shopId, categoryId || ''));
     if(response.data && Array.isArray(response.data.data)) {
-      return {
+          return {
         products: response.data.data.map((prod: Product) => ({
           id: prod.id,
           name: prod.name,
@@ -163,6 +163,7 @@ export class CatalogAPI {
           description: '',
           shopId: prod.storeId,
           categoryId: categoryId || '',
+          quantity: typeof prod.quantity === 'number' ? prod.quantity : 0,
         })),
       };
     }

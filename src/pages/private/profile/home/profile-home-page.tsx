@@ -184,22 +184,6 @@ export default function ProfileHomePage() {
                         </div>
                         <ChevronRight className="text-gray-400 w-5 h-5" />
                     </Link>
-
-                    <Link
-                        to="/profile/payment-methods"
-                        className="bg-white rounded-xl p-4 flex items-center justify-between hover:border-vapo-purple-primary border border-gray-200 transition-colors"
-                    >
-                        <div className="flex items-center gap-3">
-                            <div className="w-10 h-10 bg-purple-100 rounded-lg flex items-center justify-center">
-                                <CreditCard className="text-vapo-purple-primary w-5 h-5" />
-                            </div>
-                            <div>
-                                <h3 className="font-semibold text-gray-900">Moyens de paiement</h3>
-                                <p className="text-sm text-gray-600">Gérer vos moyens de paiement</p>
-                            </div>
-                        </div>
-                        <ChevronRight className="text-gray-400 w-5 h-5" />
-                    </Link>
                 </div>
             </div>
 

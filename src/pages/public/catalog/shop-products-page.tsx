@@ -5,6 +5,7 @@ import Typography from '@/components/atoms/typography';
 import { Button } from '@/shared/components/ui/button';
 import { useShop, useShopCategories } from '@/app/catalog/hooks/use-catalog';
 import { CatalogAPI, PaginatedProductsResponse } from '@/app/catalog/api/catalog-api';
+import type { Product } from '@/app/catalog/types';
 import { ShopProductsPageSkeleton } from '@/components/atoms/shop-products-skeleton';
 import { InfiniteScrollList } from '@/components/molecules/infinite-scroll-list';
 import { ProductCardSkeleton } from '@/components/atoms/skeleton';
@@ -14,7 +15,7 @@ export default function ShopProductsPage() {
   const { shopId } = useParams<{ shopId: string }>();
 
   const [selectedCategoryId, setSelectedCategoryId] = useState<string | undefined>();
-  const [products, setProducts] = useState<any[]>([]);
+  const [products, setProducts] = useState<Product[]>([]);
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const [isLoading, setIsLoading] = useState(false);
@@ -143,6 +144,7 @@ export default function ShopProductsPage() {
                     image={product.image}
                     title={product.name}
                     subtitle={typeof product.price === 'number' ? product.price.toFixed(2) + ' €' : '—'}
+                    stock={product.quantity}
                   />
                 </div>
               )}

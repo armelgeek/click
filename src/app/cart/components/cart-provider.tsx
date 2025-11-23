@@ -1,26 +1,29 @@
-import { PropsWithChildren, useEffect } from 'react';
+import { PropsWithChildren, useEffect, useRef } from 'react';
 import { useCart } from '../hooks/use-cart';
 import { useCartStore } from '../store';
 import { Cart } from '../types';
+import { useSession } from '@/shared/config/auth.config';
 
 export function CartProvider({ children }: PropsWithChildren) {
-  const { cart } = useCart();
-  const setCartData = useCartStore((state) => state.setCartData);
-  const currentItemCount = useCartStore((s) => s.itemCount);
-  const currentTotal = useCartStore((s) => s.total);
+  const { data: session} = useSession();
+  const { cart } = useCart(session?.user?.id || '');
+  const lastSyncedCart = useRef<string | null>(null);
 
   useEffect(() => {
     if (!cart) return;
 
-    // Only update the local store if the server cart differs from current store
-    const server = cart as Cart;
-    const serverItemCount = server.itemCount ?? 0;
-    const serverTotal = server.total ?? 0;
+    // Create a stable identifier for the cart state
+    const cartSignature = JSON.stringify({
+      itemCount: cart.itemCount ?? 0,
+      total: cart.total ?? 0,
+      items: cart.items?.map(i => ({ id: i.id, quantity: i.quantity, selected: i.selected }))
+    });
 
-    if (serverItemCount !== currentItemCount || serverTotal !== currentTotal) {
-      setCartData(server);
+    if (lastSyncedCart.current !== cartSignature) {
+      lastSyncedCart.current = cartSignature;
+      useCartStore.getState().setCartData(cart as Cart);
     }
-  }, [cart, setCartData, currentItemCount, currentTotal]);
+  }, [cart]); // ✅ Ne dépend que de cart
 
   return <>{children}</>;
 }

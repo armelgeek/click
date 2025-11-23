@@ -93,7 +93,9 @@ export const mockDeliveryTracking: Record<string, DeliveryTracking> = {
     timeline: createTimeline('1578'),
     canCall: true,
     canMessage: true,
-    lastUpdated: new Date().toISOString()
+    lastUpdated: new Date().toISOString(),
+    totalDistance: 5.2,
+    distanceTraveled: 3.5
   },
   '1579': {
     id: 'delivery-002',
@@ -107,7 +109,9 @@ export const mockDeliveryTracking: Record<string, DeliveryTracking> = {
     timeline: createTimeline('1579').slice(0, 1), // Only first timeline item
     canCall: false,
     canMessage: false,
-    lastUpdated: new Date().toISOString()
+    lastUpdated: new Date().toISOString(),
+    totalDistance: 4.8,
+    distanceTraveled: 0
   },
   '1580': {
     id: 'delivery-003',
@@ -130,7 +134,9 @@ export const mockDeliveryTracking: Record<string, DeliveryTracking> = {
     ],
     canCall: false,
     canMessage: false,
-    lastUpdated: new Date().toISOString()
+    lastUpdated: new Date().toISOString(),
+    totalDistance: 3.2,
+    distanceTraveled: 3.2
   }
 };
 

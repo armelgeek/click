@@ -6,10 +6,11 @@ import {
 } from '@/shared/types/api.types';
 
 export class AddressesAPI {
-  
-  static async getUserAddresses(): Promise<{ addresses: Address[] }> {
+
+  static async getUserAddresses(userId: string): Promise<{ addresses: Address[] }> {
     const response = await apiClient.get<{ addresses: Address[] }>(
-      API_ENDPOINTS.addresses.list
+      API_ENDPOINTS.addresses.list,
+      { params: { userId } }
     );
     return response.data;
   }

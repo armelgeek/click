@@ -14,6 +14,11 @@ interface CartState {
   updateItemQuantity: (itemId: string, quantity: number) => void;
   clearCart: () => void;
   setCartData: (cart: Cart) => void;
+  stockValidation?: { valid: boolean; items: { productId: string; requestedQuantity: number; availableQuantity: number; isAvailable: boolean }[] } | null;
+  setStockValidation: (sv: { valid: boolean; items: { productId: string; requestedQuantity: number; availableQuantity: number; isAvailable: boolean }[] } | null) => void;
+  stockModalOpen?: boolean;
+  openStockModal: () => void;
+  closeStockModal: () => void;
 }
 
 export const useCartStore = create<CartState>()(
@@ -82,9 +87,14 @@ export const useCartStore = create<CartState>()(
           total: cart.total,
           itemCount: cart.itemCount,
         }),
+  stockValidation: null,
+  setStockValidation: (sv) => set({ stockValidation: sv }),
+  stockModalOpen: false,
+  openStockModal: () => set({ stockModalOpen: true }),
+  closeStockModal: () => set({ stockModalOpen: false }),
     }),
     {
-      name: 'cart-storage',
+      name: 'vapo-cart', // nouvelle clé localStorage pour le panier
     }
   )
 );

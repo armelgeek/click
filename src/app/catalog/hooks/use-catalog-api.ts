@@ -183,6 +183,7 @@ export function useProduct(productId?: string) {
             image: productData.image ?? '',
             shopId,
             categoryId,
+            quantity: typeof productData.quantity === 'number' ? productData.quantity : (productData.quantity ?? 0),
           });
          }
       } catch (err) {

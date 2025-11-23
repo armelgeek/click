@@ -20,8 +20,8 @@ export default function SideMenu({ open, onClose }: SideMenuProps) {
   const menuItems = [
     { path: '/profile/home', label: 'Mon compte' },
     { path: '/shops', label: 'Boutiques' },
-    { path: '/orders/history', label: 'Commandes' },
-    { path: '/settings', label: 'Adresses' },
+    { path: '/orders', label: 'Commandes' },
+    { path: '/profile/addresses', label: 'Adresses' },
     { path: '/about', label: 'À propos' }
   ];
 

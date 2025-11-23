@@ -2,12 +2,14 @@ import { useState } from 'react';
 import { MapPin, Plus, Pencil, Trash2, Star } from 'lucide-react';
 import { Button } from '@/shared/components/ui/button';
 import { useAddresses, useAddressesMutations } from '@/app/user/hooks/use-addresses';
+import { useSession } from '@/shared/config/auth.config';
 import { Address } from '@/shared/types/api.types';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/shared/components/ui/dialog';
 import { AddressForm } from './address-form';
 
 export default function AddressesPage() {
-  const { addresses, isLoading } = useAddresses();
+  const { data: session } = useSession();
+  const { addresses, isLoading } = useAddresses(session?.user?.id || '');
   const { deleteAddress, setDefaultAddress } = useAddressesMutations();
   
   const [isFormOpen, setIsFormOpen] = useState(false);

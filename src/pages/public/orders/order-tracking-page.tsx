@@ -9,13 +9,14 @@ import DeliveryDegradedMode from '@/components/organisms/delivery-degraded-mode'
 import { useDeliveryTracking, useDeliveryActions, getStatusDisplayInfo } from '@/app/delivery';
 import { useGeolocation } from '@/app/location/hooks/use-geolocation';
 import ResponsiveContainer from '@/components/atoms/responsive-container';
+import { useSession } from '@/shared/config/auth.config';
 
 export default function OrderTrackingPage() {
   const { orderId } = useParams<{ orderId: string }>();
-  
-  const { data: trackingData, isLoading, error } = useDeliveryTracking(orderId || '');
-  const { 
-    markAsReceived, 
+  const { data: session } = useSession();
+  const { data: trackingData, isLoading, error } = useDeliveryTracking(orderId || '', session?.user.id || '');
+  const {
+    markAsReceived,
     isMarkingAsReceived,
     callDriver,
     isCallingDriver,
@@ -23,8 +24,8 @@ export default function OrderTrackingPage() {
     isSendingMessage
   } = useDeliveryActions(orderId || '');
 
-  const { 
-    shouldShowDegradedMode, 
+  const {
+    shouldShowDegradedMode,
     requestPermission
   } = useGeolocation();
 
@@ -76,24 +77,24 @@ export default function OrderTrackingPage() {
   return (
     <ResponsiveContainer maxWidth="mobile" centerOnDesktop>
       <div className="min-h-screen flex flex-col gap-6 py-4">
-        <OrderHeader 
-          orderId={tracking.orderId} 
-          status={statusInfo.label} 
-          statusColor={statusInfo.color} 
+        <OrderHeader
+          orderId={tracking.orderId}
+          status={statusInfo.label}
+          statusColor={statusInfo.color}
         />
-        
-        <OrderDeliveryStatus 
-          eta={tracking.estimatedTimeMinutes > 0 
-            ? `${tracking.estimatedTimeMinutes} minutes` 
-            : tracking.status === 'delivered' 
-              ? 'Livré' 
+
+        <OrderDeliveryStatus
+          eta={tracking.estimatedTimeMinutes > 0
+            ? `${tracking.estimatedTimeMinutes} minutes`
+            : tracking.status === 'delivered'
+              ? 'Livré'
               : 'Bientôt disponible'
           }
           driverName={tracking.driver.name}
           currentLocation={tracking.currentLocation.address}
           lastUpdated={tracking.lastUpdated}
         />
-        
+
         {shouldShowDegradedMode ? (
           <DeliveryDegradedMode
             orderId={tracking.orderId}
@@ -107,7 +108,7 @@ export default function OrderTrackingPage() {
             onMessageDriver={handleSendMessage}
           />
         ) : (
-          <OrderMapTracking 
+          <OrderMapTracking
             callDisabled={!tracking.canCall}
             messageDisabled={!tracking.canMessage}
             markerLabel={`${tracking.driver.name} est ici !`}
@@ -117,24 +118,24 @@ export default function OrderTrackingPage() {
             isSendingMessage={isSendingMessage}
           />
         )}
-        
+
         <OrderProofSection />
 
-      {!isDelivered && (
-        <button
-          className="w-full bg-vapo-purple-primary text-vapo-purple-light-1 rounded-2xl py-4 mt-2 text-lg font-medium focus:outline-none focus:ring-2 focus:ring-vapo-purple-primary/50 transition disabled:opacity-60"
-          onClick={handleMarkAsReceived}
-          disabled={isMarkingAsReceived}
-        >
-          {isMarkingAsReceived ? 'Confirmation...' : 'Marquer comme reçu'}
-        </button>
-      )}
+        {!isDelivered && (
+          <button
+            className="w-full bg-vapo-purple-primary text-vapo-purple-light-1 rounded-2xl py-4 mt-2 text-lg font-medium focus:outline-none focus:ring-2 focus:ring-vapo-purple-primary/50 transition disabled:opacity-60"
+            onClick={handleMarkAsReceived}
+            disabled={isMarkingAsReceived}
+          >
+            {isMarkingAsReceived ? 'Confirmation...' : 'Marquer comme reçu'}
+          </button>
+        )}
 
-      {isDelivered && (
-        <div className="w-full bg-green-500 text-white rounded-2xl py-4 mt-2 text-lg font-medium text-center">
-          ✅ Livraison confirmée !
-        </div>
-      )}
+        {isDelivered && (
+          <div className="w-full bg-green-500 text-white rounded-2xl py-4 mt-2 text-lg font-medium text-center">
+            ✅ Livraison confirmée !
+          </div>
+        )}
       </div>
     </ResponsiveContainer>
   );

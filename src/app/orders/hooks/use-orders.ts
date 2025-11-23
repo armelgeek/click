@@ -11,14 +11,7 @@ export function useOrders() {
   });
 }
 
-export function useOrder(id: string) {
-  return useQuery({
-    queryKey: ['orders', id],
-    queryFn: () => OrdersMockService.getOrderById(id),
-    staleTime: 5 * 60 * 1000,
-    enabled: !!id,
-  });
-}
+
 
 export function useOrdersByStatus(status: Order['status']) {
   return useQuery({

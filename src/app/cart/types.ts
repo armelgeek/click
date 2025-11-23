@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import { createOrderSchema } from './schema';
 
 export const cartItemSchema = z.object({
   id: z.string(),
@@ -29,12 +30,7 @@ export const updateCartItemSchema = z.object({
   selected: z.boolean().optional(),
 });
 
-export const createOrderSchema = z.object({
-  cartId: z.string(),
-  deliveryAddress: z.string(),
-  paymentMethod: z.string(),
-  notes: z.string().optional(),
-});
+
 
 export const orderSchema = z.object({
   id: z.string(),

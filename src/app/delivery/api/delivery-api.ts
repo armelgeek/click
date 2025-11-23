@@ -3,9 +3,9 @@ import { apiClient, API_ENDPOINTS } from '@/shared/config/api.config';
 
 export class DeliveryAPI {
 
-  static async getOrderTracking(orderId: string): Promise<DeliveryTrackingResponse> {
+  static async getOrderTracking(orderId: string, userId: string): Promise<DeliveryTrackingResponse> {
     const response = await apiClient.get<DeliveryTrackingResponse>(
-      API_ENDPOINTS.delivery.tracking(orderId)
+      API_ENDPOINTS.delivery.tracking(orderId, userId)
     );
     return response.data;
   }

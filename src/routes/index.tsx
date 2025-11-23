@@ -81,10 +81,6 @@ const publicRoutes: RouteObject[] = [
     },
     {
         path: '/orders/:orderId',
-        element: <OrderTrackingPage />,
-    },
-    {
-        path: '/orders/:orderId',
         element: <OrderDetailPage />,
     },
     {

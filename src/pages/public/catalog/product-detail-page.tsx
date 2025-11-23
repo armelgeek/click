@@ -3,11 +3,13 @@ import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious
 import { useState, useEffect } from 'react';
 import { AddToCartSuccessModal } from '@/components/molecules/add-to-cart-success-modal';
 import { Label } from '@/shared/components/ui/label';
+import { Badge } from '@/components/atoms/badge';
 import { Boxes, Minus, Plus } from 'lucide-react';
 import { Button } from '@/shared/components/ui/button';
 import { useNavigate, useParams } from 'react-router';
 import { useCartMutations } from '@/app/cart';
-import { useProduct, useSimilarProducts } from '@/app/catalog/hooks/use-catalog-api';
+import { useProduct, useSimilarProducts, useStore } from '@/app/catalog/hooks/use-catalog-api';
+import { useProductStock } from '@/app/catalog/hooks/use-product-stock';
 import ProductCard from '@/components/molecules/product-card';
 import { ProductDetailSkeleton } from '@/components/atoms/product-detail-skeleton';
 import { toastService } from '@/hooks/use-toast';
@@ -45,14 +47,30 @@ function getProductMainImage(product: ProductImageInfo): string {
 export default function ProductDetailPage() {
     const { productId } = useParams();
     const { product, loading, error } = useProduct(productId);
+    const { data: productStock } = useProductStock(productId);
+    const { store: productStore } = useStore(product?.shopId);
     const { products: similarProducts, loading: similarLoading } = useSimilarProducts(productId);
     const [qty, setQty] = useState(1);
+    const productQuantity = productStock?.quantity ?? product?.quantity ?? undefined;
+    const outOfStock = typeof productQuantity === 'number' && productQuantity <= 0;
+    const lowStock = typeof productQuantity === 'number' && productQuantity > 0 && productQuantity < 5; // <5 show warning
     const navigate = useNavigate();
     const { addToCart, isAddingToCart } = useCartMutations();
     const [showCartModal, setShowCartModal] = useState(false);
 
     useEffect(() => {
         window.scrollTo(0, 0);
+    }, [productId]);
+
+    useEffect(() => {
+        if (typeof productQuantity === 'number' && qty > productQuantity) {
+            setQty(productQuantity);
+        }
+    }, [productQuantity, qty]);
+
+    // Refetch stock whenever we display the product (we rely on useProductStock hook refetch policy), but we also want to re-check on mount
+    useEffect(() => {
+        // This effect is intentionally left simple. UseProductStock already handles querying on productId changes.
     }, [productId]);
 
     if (loading) {
@@ -63,13 +81,24 @@ export default function ProductDetailPage() {
     }
 
     const handleAddToCart = () => {
+        // S'assurer que toutes les infos produit sont transmises pour le panier guest (LegacyProduct)
+        // Ne pas ajouter si rupture de stock
+        if (productQuantity === 0) {
+            toastService.addToast({ type: 'error', message: 'Produit en rupture de stock', duration: 3000 });
+            return;
+        }
+        if (typeof productQuantity === 'number' && qty > productQuantity) {
+            toastService.addToast({ type: 'error', message: 'Quantité demandée supérieure au stock disponible', duration: 3000 });
+            return;
+        }
         addToCart.mutate(
             {
                 productId: product.id,
                 quantity: qty,
                 name: product.name,
-                price: product.price,
-                image: getProductMainImage(product)
+                price: typeof product.price === 'number' ? product.price : 0,
+                image: product.image || '/icons/product.png',
+                storeId: product.shopId || undefined,
             },
             {
                 onSuccess: () => {
@@ -78,7 +107,7 @@ export default function ProductDetailPage() {
                 onError: (error) => {
                     toastService.addToast({
                         type: 'error',
-                        message: 'Erreur lors de l\'ajout au panier',
+                        message: "Erreur lors de l'ajout au panier",
                         duration: 3000
                     });
                     console.error('Failed to add to cart:', error);
@@ -126,8 +155,26 @@ export default function ProductDetailPage() {
                 </div>
                 <div className="space-y-4">
                     <div>
+                        <div className='py-2'>
+                            {hasImagesAndOwner(product) ? (
+                                product.owner === 'VAPOSTORE' ? (
+                                    <Badge className="text-xs text-vapo-purple-primary" variant="outline">VapoStore</Badge>
+                                ) : (
+                                    <Badge className="text-xs text-vapo-purple-primary"  variant="outline">Autre vendeur</Badge>
+                                )
+                            ) : product && product.shopId && productStore ? (
+                                (productStore.name || '').toLowerCase().includes('vapo') ? (
+                                    <Badge className="text-xs text-vapo-purple-primary" variant="outline">VapoStore</Badge>
+                                ) : (
+                                    <Badge className="text-xs text-vapo-purple-primary" variant="outline">Autre vendeur</Badge>
+                                )
+                            ) : null}
+                        </div>
                         <div className="text-3xl font-bold text-gray-900 mb-2">{product.price.toFixed(2)} €</div>
-                        <h1 className="text-lg font-semibold text-gray-900 mb-1">{product.name}</h1>
+                        <div className="flex items-center gap-3">
+                            <h1 className="text-lg font-semibold text-gray-900 mb-1">{product.name}</h1>
+
+                        </div>
                         <div className="text-gray-700 text-sm mb-3">
                             <span className="font-semibold">Description du produit :</span>
                             &nbsp;{product.description ? product.description : "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Pellentesque ut malesuada orci. Quisque at turpis vel odio fermentum ultricies non sit amet eros. Vivamus vehicula dapibus arcu a cursus."}
@@ -149,8 +196,8 @@ export default function ProductDetailPage() {
                                 variant="ghost"
                                 size="icon"
                                 className="h-8 w-8 rounded-full hover:bg-white"
-                                onClick={() => setQty(q => q + 1)}
-                                disabled={isAddingToCart}
+                                onClick={() => setQty(q => Math.min((productQuantity ?? Infinity), q + 1))}
+                                disabled={isAddingToCart || (typeof productQuantity === 'number' && qty >= productQuantity)}
                             >
                                 <Plus className="w-4 h-4" />
                             </Button>
@@ -159,7 +206,7 @@ export default function ProductDetailPage() {
                             variant="vapo"
                             className="flex-1 h-12 text-base font-medium"
                             onClick={handleAddToCart}
-                            disabled={isAddingToCart}
+                            disabled={isAddingToCart || outOfStock}
                         >
                             {isAddingToCart ? (
                                 <div className="flex items-center gap-2">
@@ -173,11 +220,20 @@ export default function ProductDetailPage() {
                         <AddToCartSuccessModal
                             isOpen={showCartModal}
                             onClose={() => setShowCartModal(false)}
-                            onContinueShopping={() => { setShowCartModal(false); navigate('/shops'); }}
+                            onContinueShopping={() => { setShowCartModal(false); }}
                             onGoToCart={() => { setShowCartModal(false); navigate('/cart'); }}
                             productName={product.name}
                         />
                     </div>
+                    {typeof productQuantity === 'number' && (
+                        outOfStock ? (
+                            <div className="mt-3 text-red-600 font-medium">Actuellement indisponible.</div>
+                        ) : lowStock ? (
+                            <div className="mt-3 text-yellow-600 font-medium">Il ne reste plus que {productQuantity} exemplaire(s) en stock.</div>
+                        ) : (
+                            <></>
+                        )
+                    )}
                 </div>
             </div>
 
@@ -196,10 +252,11 @@ export default function ProductDetailPage() {
                                     className="min-w-[140px] snap-start cursor-pointer"
                                     onClick={() => navigate(`/product/${p.id}`)}
                                 >
-                                    <ProductCard 
-                                        image={p.owner === 'VAPOSTORE' ? (p.images?.[0] || '/icons/product.png') : (p.image || '/icons/product.png')} 
-                                        title={p.name} 
-                                        subtitle={p.priceTTC.toFixed(2) + ' €'} 
+                                    <ProductCard
+                                        image={p.owner === 'VAPOSTORE' ? (p.images?.[0] || '/icons/product.png') : (p.image || '/icons/product.png')}
+                                        title={p.name}
+                                        subtitle={p.priceTTC.toFixed(2) + ' €'}
+                                        stock={p.quantity}
                                     />
                                 </div>
                             ))}

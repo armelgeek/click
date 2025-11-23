@@ -1,12 +1,15 @@
 import { useEffect } from 'react';
 import { Link, useNavigate, useParams } from 'react-router';
 import { useOrder } from '@/app/cart';
+import { useSession } from '@/shared/config/auth.config';
 
 export default function OrderSuccessPage() {
     const { orderId } = useParams<{ orderId: string }>();
+    const { data: session } = useSession();
     const navigate = useNavigate();
-    const { order, isLoading, error } = useOrder(orderId);
 
+    const { order, isLoading, error } = useOrder(orderId, session?.user.id || '');
+    console.log('order', orderId);
     useEffect(() => {
         if (!orderId) {
             navigate('/cart');

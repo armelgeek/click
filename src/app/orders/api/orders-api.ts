@@ -1,7 +1,7 @@
 import {
-  OrderStatistics, 
-  OrderRatingPayload, 
-  OrderReturnPayload, 
+  OrderStatistics,
+  OrderRatingPayload,
+  OrderReturnPayload,
   OrderReturnStatus,
   OrderCancelPayload,
   DeliveryConfirmationPayload,
@@ -56,11 +56,10 @@ export interface ProofOfDelivery {
   signature?: string;
   timestamp?: string;
 }
-
 export interface Order {
   id: string;
-  number?: number;
-  status: string;
+  number: number;
+  status: 'pending' | 'confirmed' | 'preparing' | 'out_for_delivery' | 'delivered' | 'cancelled' | 'returned';
   statusLabel?: string;
   statusColor?: string;
   date: string;
@@ -76,23 +75,40 @@ export interface Order {
 }
 
 export class OrdersAPI {
-  
+
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   static async createOrder(_payload: CreateOrderPayload): Promise<{ order: Order }> {
     // This should not be called directly - orders are created via CartAPI
     throw new Error('Orders should be created via CartAPI.createOrder()');
   }
 
-  static async getOrders(params?: PaginationParams): Promise<PaginatedResponse<Order>> {
+  static async getOrders(params?: PaginationParams & { userId?: string }): Promise<PaginatedResponse<Order>> {
     const response = await apiClient.get<PaginatedResponse<OrderApi>>(
       API_ENDPOINTS.orders.list,
       { params }
     );
-    
+
     // Convert API response to expected format
-    const convertedOrders: Order[] = (response.data.data || []).map((order: OrderApi) => ({
+    const allowedStatuses = [
+      'pending',
+      'confirmed',
+      'preparing',
+      'out_for_delivery',
+      'delivered',
+      'cancelled',
+      'returned',
+    ] as const;
+    type StatusType = typeof allowedStatuses[number];
+    // Support both 'data' and 'orders' as the array key, with proper typing
+    type OrdersApiResponse = PaginatedResponse<OrderApi> & { orders?: OrderApi[] };
+    const apiResp = response.data as OrdersApiResponse;
+    const ordersArray = apiResp.data || apiResp.orders || [];
+    const convertedOrders: Order[] = ordersArray.map((order: OrderApi) => ({
       id: order.id,
-      number: order.number,
-      status: order.status || 'pending',
+      number: typeof order.number === 'number' ? order.number : (order.id && !isNaN(Number(order.id)) ? Number(order.id) : 0),
+      status: allowedStatuses.includes(order.status as StatusType)
+        ? (order.status as StatusType)
+        : 'pending',
       statusLabel: this.getStatusLabel(order.status),
       statusColor: this.getStatusColor(order.status),
       date: order.date || order.createdAt || new Date().toISOString(),
@@ -122,17 +138,29 @@ export class OrdersAPI {
     };
   }
 
-  static async getOrderById(orderId: string): Promise<Order> {
+  static async getOrderById(orderId: string, userId: string): Promise<Order> {
     const response = await apiClient.get<OrderApi>(
-      API_ENDPOINTS.orders.detail(orderId)
+      API_ENDPOINTS.orders.detail(orderId, userId)
     );
-    
+
     const order = response.data;
 
+    const allowedStatuses = [
+      'pending',
+      'confirmed',
+      'preparing',
+      'out_for_delivery',
+      'delivered',
+      'cancelled',
+      'returned',
+    ] as const;
+    type StatusType = typeof allowedStatuses[number];
     return {
       id: order.id,
-      number: order.number,
-      status: order.status || 'pending',
+      number: typeof order.number === 'number' ? order.number : (order.id && !isNaN(Number(order.id)) ? Number(order.id) : 0),
+      status: allowedStatuses.includes(order.status as StatusType)
+        ? (order.status as StatusType)
+        : 'pending',
       statusLabel: this.getStatusLabel(order.status),
       statusColor: this.getStatusColor(order.status),
       date: order.date || order.createdAt || new Date().toISOString(),

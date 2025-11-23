@@ -7,10 +7,10 @@ const addressKeys = {
   list: () => [...addressKeys.all, 'list'] as const,
 };
 
-export const useAddresses = () => {
+export const useAddresses = (userId: string) => {
   const query = useQuery({
     queryKey: addressKeys.list(),
-    queryFn: () => AddressesAPI.getUserAddresses(),
+    queryFn: () => AddressesAPI.getUserAddresses(userId),
     staleTime: 5 * 60 * 1000, // 5 minutes
   });
 

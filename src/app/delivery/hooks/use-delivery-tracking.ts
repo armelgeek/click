@@ -11,12 +11,12 @@ export const deliveryKeys = {
 /**
  * Hook to get delivery tracking information for an order
  */
-export const useDeliveryTracking = (orderId: string, options?: { refetchInterval?: number }) => {
+export const useDeliveryTracking = (orderId: string, userId: string) => {
   return useQuery({
     queryKey: deliveryKeys.tracking(orderId),
-    queryFn: () => DeliveryAPI.getOrderTracking(orderId),
+    queryFn: () => DeliveryAPI.getOrderTracking(orderId, userId),
     staleTime: 30 * 1000, // 30 seconds
-    refetchInterval: options?.refetchInterval || 15000, // Refetch every 15 seconds for real-time updates
+    refetchInterval: 15000, // Refetch every 15 seconds for real-time updates
     refetchIntervalInBackground: true,
     enabled: !!orderId
   });
@@ -85,15 +85,15 @@ export const useDeliveryActions = (orderId: string) => {
     callDriver: callDriverMutation.mutate,
     isCallingDriver: callDriverMutation.isPending,
     callDriverError: callDriverMutation.error,
-    
+
     sendMessage: sendMessageMutation.mutate,
     isSendingMessage: sendMessageMutation.isPending,
     sendMessageError: sendMessageMutation.error,
-    
+
     markAsReceived: markAsReceivedMutation.mutate,
     isMarkingAsReceived: markAsReceivedMutation.isPending,
     markAsReceivedError: markAsReceivedMutation.error,
-    
+
     invalidateTracking
   };
 };

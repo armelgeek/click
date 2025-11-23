@@ -6,8 +6,10 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { loginSchema, LoginFormValues } from '../types/login.schema';
 import { signIn } from '@/shared/config/auth.config';
 import { useNavigate, useSearchParams } from 'react-router';
+import { useSession } from '@/shared/config/auth.config';
 import { useState } from 'react';
 import { useToast } from '@/hooks/use-toast';
+import { mergeGuestCartWithUserCart } from '@/app/cart/api/cart-merge';
 
 export default function LoginForm() {
     const navigate = useNavigate();
@@ -15,6 +17,8 @@ export default function LoginForm() {
     const returnTo = searchParams.get('returnTo');
     const [loading, setLoading] = useState(false);
     const { success, error: showErrorToast } = useToast();
+    const { data: session, isPending: sessionPending } = useSession();
+
     const {
         control,
         handleSubmit,
@@ -27,60 +31,57 @@ export default function LoginForm() {
         },
         mode: 'onSubmit',
     });
-
+    console.log('LoginForm rendered. Session:', session, 'Pending:', sessionPending);
     const onSubmit = async (data: LoginFormValues) => {
         try {
             setLoading(true);
-            
             const result = await signIn.email({
                 email: data.email,
                 password: data.password,
             });
-            
             if (result?.data) {
+                // Fusionne le panier invité avec le panier utilisateur
+                // Use result.data?.user?.id when available, else fallback to session user id
+                const userId = result?.data?.user?.id || session?.user?.id;
+                await mergeGuestCartWithUserCart(userId).then(() => {
+                    if (returnTo) {
+                        navigate(returnTo, { replace: true });
+                    } else {
+                        navigate('/profile/home', { replace: true });
+                    }
+                });
                 success('Connexion réussie !');
-                setTimeout(() => {
-                    // Redirect to returnTo URL if provided, otherwise go to profile
-                    navigate(returnTo || '/profile/home');
-                }, 1000);
             } else {
                 throw new Error('Erreur lors de la connexion');
             }
-            
-            
         } catch (e) {
             const error = e as { message?: string; code?: string };
             let errorMessage = 'Erreur lors de la connexion';
-            
             if (error.message) {
-                if (error.message.includes('Invalid credentials') || 
-                    error.message.includes('invalid') || 
+                if (error.message.includes('Invalid credentials') ||
+                    error.message.includes('invalid') ||
                     error.code === 'INVALID_CREDENTIALS') {
                     errorMessage = 'Email ou mot de passe incorrect';
-                } else if (error.message.includes('User not found') || 
-                          error.code === 'USER_NOT_FOUND') {
+                } else if (error.message.includes('User not found') ||
+                    error.code === 'USER_NOT_FOUND') {
                     errorMessage = 'Aucun compte trouvé avec cet email';
-                } else if (error.message.includes('Too many requests') || 
-                          error.code === 'TOO_MANY_REQUESTS') {
+                } else if (error.message.includes('Too many requests') ||
+                    error.code === 'TOO_MANY_REQUESTS') {
                     errorMessage = 'Trop de tentatives. Veuillez réessayer plus tard';
-                } else if (error.message.includes('Network') || 
-                          error.code === 'NETWORK_ERROR') {
+                } else if (error.message.includes('Network') ||
+                    error.code === 'NETWORK_ERROR') {
                     errorMessage = 'Erreur de réseau. Vérifiez votre connexion';
                 } else {
                     errorMessage = error.message;
                 }
             }
-            
             showErrorToast(errorMessage);
         } finally {
             setLoading(false);
         }
     };
-
-
     return (
         <div className="relative w-full max-w-sm">
-
             <form className="flex flex-col gap-4" onSubmit={handleSubmit(onSubmit)}>
                 <Controller
                     name="email"

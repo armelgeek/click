@@ -10,7 +10,11 @@ import { useSession } from '@/shared/config/auth.config';
 import { useEffect } from 'react';
 
 
-export const useCart = () => {
+// Module-scoped dedupe flags to avoid repeated validations across instances
+let validationInProgressGlobal = false;
+let lastValidationAttemptGlobal = 0;
+
+export const useCart = (userId: string) => {
   const queryClient = useQueryClient();
   const { data: session } = useSession();
   const isAuthenticated = !!session?.user;
@@ -20,14 +24,30 @@ export const useCart = () => {
   useEffect(() => {
     if (!isAuthenticated) {
       const cart = GuestCartService.getCart() || GuestCartService.createEmptyCart();
-      // Initialize Zustand store with guest cart data
-      cartStore.setCartData(cart);
+      // Only update Zustand store if cart data is different (avoid infinite loop)
+      const storeItems = cartStore.items || [];
+      const cartItems = cart.items || [];
+      const isSame =
+        storeItems.length === cartItems.length &&
+        storeItems.every((item, idx) => {
+          const c = cartItems[idx];
+          return (
+            item.id === c.id &&
+            item.productId === c.productId &&
+            item.quantity === c.quantity &&
+            item.price === c.price &&
+            item.selected === c.selected
+          );
+        });
+      if (!isSame) {
+        cartStore.setCartData(cart);
+      }
     }
   }, [isAuthenticated, cartStore]);
 
   const query = useQuery({
     queryKey: cartKeys.cart(),
-    queryFn: () => CartAPI.getCart(),
+    queryFn: () => CartAPI.getCart(userId),
     staleTime: CART_STALE_TIME.CART,
     gcTime: CART_CACHE_TIME.CART,
     refetchOnMount: true,
@@ -68,23 +88,48 @@ export const useCartMutations = () => {
   const { data: session } = useSession();
   const isAuthenticated = !!session?.user;
 
+  const cartStore = useCartStore();
+
+  // Dedup and throttle validation calls to prevent immediate repeated calls
+  const VALIDATION_THROTTLE_MS = 800;
+
+  const checkStockValidation = async (force: boolean = false) => {
+    const now = Date.now();
+    if (!force && validationInProgressGlobal) return;
+    if (!force && now - lastValidationAttemptGlobal < VALIDATION_THROTTLE_MS) return;
+    validationInProgressGlobal = true;
+    lastValidationAttemptGlobal = now;
+    try {
+      const result = await CartAPI.validateStockThrottled(force, VALIDATION_THROTTLE_MS, { userId: session?.user?.id });
+      cartStore.setStockValidation(result);
+      if (!result.valid) {
+        cartStore.openStockModal();
+      }
+    } catch (e) {
+      console.warn('Stock validation check failed:', e);
+      cartStore.setStockValidation(null);
+    } finally {
+      validationInProgressGlobal = false;
+    }
+  };
+
   const addToCart = useMutation({
     mutationFn: async (payload: AddToCartPayloadExtended) => {
       if (isAuthenticated) {
-        return CartAPI.addToCart(payload);
+        return CartAPI.addToCart({ ...payload, userId: session?.user?.id });
       } else {
         // Guest cart - use localStorage
         const cart = GuestCartService.addItem(
           payload.productId,
           payload.quantity,
-          payload.name,
-          payload.price,
-          payload.image
+          payload.name ?? '',
+          payload.price ?? 0,
+          payload.image ?? ''
         );
         return { cart };
       }
     },
-    onSuccess: (data: CartResponse) => {
+    onSuccess: async (data: CartResponse) => {
       if (isAuthenticated) {
         queryClient.invalidateQueries({ queryKey: cartKeys.cart() });
       }
@@ -98,6 +143,10 @@ export const useCartMutations = () => {
           console.warn('Failed to save cart updatedAt', err);
         }
       }
+      // Validate stock after cart mutation
+      if (isAuthenticated) {
+        await checkStockValidation();
+      }
     },
     onError: (error) => {
       console.error('Failed to add to cart:', error);
@@ -107,13 +156,13 @@ export const useCartMutations = () => {
   const updateCartItem = useMutation({
     mutationFn: async ({ itemId, payload }: { itemId: string; payload: UpdateCartItemPayload }) => {
       if (isAuthenticated) {
-        return CartAPI.updateCartItem(itemId, payload);
+        return CartAPI.updateCartItem(itemId, payload, session?.user?.id);
       } else {
         const cart = GuestCartService.updateItem(itemId, payload);
         return { cart };
       }
     },
-    onSuccess: (data: CartResponse) => {
+    onSuccess: async (data: CartResponse) => {
       if (isAuthenticated) {
         queryClient.invalidateQueries({ queryKey: cartKeys.cart() });
       }
@@ -125,6 +174,9 @@ export const useCartMutations = () => {
         } catch (err) {
           console.warn('Failed to save cart updatedAt', err);
         }
+      }
+      if (isAuthenticated) {
+        await checkStockValidation();
       }
     },
     onError: (error) => {
@@ -135,13 +187,13 @@ export const useCartMutations = () => {
   const removeFromCart = useMutation({
     mutationFn: async (itemId: string) => {
       if (isAuthenticated) {
-        return CartAPI.removeFromCart(itemId);
+        return CartAPI.removeFromCart(itemId, session?.user?.id);
       } else {
         const cart = GuestCartService.removeItem(itemId);
         return { cart };
       }
     },
-    onSuccess: (data: CartResponse) => {
+    onSuccess: async (data: CartResponse) => {
       if (isAuthenticated) {
         queryClient.invalidateQueries({ queryKey: cartKeys.cart() });
       }
@@ -153,6 +205,9 @@ export const useCartMutations = () => {
         } catch (err) {
           console.warn('Failed to save cart updatedAt', err);
         }
+      }
+      if (isAuthenticated) {
+        await checkStockValidation();
       }
     },
     onError: (error) => {
@@ -163,13 +218,13 @@ export const useCartMutations = () => {
   const clearCart = useMutation({
     mutationFn: async () => {
       if (isAuthenticated) {
-        return CartAPI.clearCart();
+        return CartAPI.clearCart(session?.user?.id);
       } else {
         const cart = GuestCartService.clearCart();
         return { cart };
       }
     },
-    onSuccess: (data: CartResponse) => {
+    onSuccess: async (data: CartResponse) => {
       if (isAuthenticated) {
         queryClient.invalidateQueries({ queryKey: cartKeys.cart() });
       }
@@ -182,6 +237,9 @@ export const useCartMutations = () => {
           console.warn('Failed to save cart updatedAt', err);
         }
       }
+      if (isAuthenticated) {
+        await checkStockValidation();
+      }
     },
     onError: (error) => {
       console.error('Failed to clear cart:', error);
@@ -191,13 +249,13 @@ export const useCartMutations = () => {
   const selectAllItems = useMutation({
     mutationFn: async (selected: boolean) => {
       if (isAuthenticated) {
-        return CartAPI.selectAllItems(selected);
+        return CartAPI.selectAllItems(selected, session?.user?.id);
       } else {
         const cart = GuestCartService.selectAllItems(selected);
         return { cart };
       }
     },
-    onSuccess: (data: CartResponse) => {
+    onSuccess: async (data: CartResponse) => {
       if (isAuthenticated) {
         queryClient.invalidateQueries({ queryKey: cartKeys.cart() });
       }
@@ -210,6 +268,9 @@ export const useCartMutations = () => {
           // Ignore localStorage errors
           console.warn('Failed to save cart updatedAt', e);
         }
+      }
+      if (isAuthenticated) {
+        await checkStockValidation();
       }
     },
     onError: (error) => {

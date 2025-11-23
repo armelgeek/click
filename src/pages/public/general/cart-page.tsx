@@ -6,8 +6,16 @@ import { Button } from '@/shared/components/ui/button';
 import ProductCard from '@/components/molecules/product-card';
 import { useNavigate, Link } from 'react-router';
 import { useCart, useCartMutations } from '@/app/cart';
-import { useState } from 'react';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/shared/components/ui/dialog';
+import { CartAPI } from '@/app/cart/api/cart-api';
+import type { StockValidationResponse } from '@/app/cart/types';
+import { useState, useEffect } from 'react';
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter,
+} from '@/shared/components/ui/dialog';
 import { useRecommendedProducts } from '@/app/catalog/hooks/use-recommended-products';
 import { CartItem as CartItemType } from '@/app/cart/types';
 import { useSession } from '@/shared/config/auth.config';
@@ -15,210 +23,322 @@ import { useSession } from '@/shared/config/auth.config';
 import { HorizontalScrollContainer } from '@/components/molecules/horizontal-scroll-container';
 
 function RecommendedProducts({ cartItems }: { cartItems: CartItemType[] }) {
-    const firstItem = cartItems[0];
-    const { data: recommendedProducts, isLoading } = useRecommendedProducts(firstItem?.productId, !!firstItem);
-    if (isLoading || !recommendedProducts?.length) {
-        return null;
-    }
+  const firstItem = cartItems[0];
+  const { data: recommendedProducts, isLoading } = useRecommendedProducts(
+    firstItem?.productId,
+    !!firstItem
+  );
+  if (isLoading || !recommendedProducts?.length) {
+    return null;
+  }
 
-    return (
-        <div className="bg-white rounded-2xl p-6 mt-4">
-            <div className="mb-6">
-                <h2 className="text-xl font-semibold text-gray-800">D'autres produits qui peuvent vous intéresser&nbsp;!</h2>
-            </div>
-            <HorizontalScrollContainer className="py-1 px-1 gap-6" showArrows scrollAmount={220}>
-                {recommendedProducts.slice(0, 8).map((product) => (
-                    <Link
-                        key={product.id}
-                        to={`/product/${product.id}`}
-                        className="no-underline block transform hover:scale-[1.02] transition-transform duration-200 min-w-[140px]  snap-start"
-                        tabIndex={0}
-                    >
-                        <ProductCard
-                            image={product.image || '/icons/product-placeholder.png'}
-                            title={product.name}
-                            subtitle={`${product.priceTTC.toFixed(2)} €`}
-                        />
-                    </Link>
-                ))}
-            </HorizontalScrollContainer>
-        </div>
-    );
+  return (
+    <div className="bg-white rounded-2xl p-6 mt-4">
+      <div className="mb-6">
+        <h2 className="text-xl font-semibold text-gray-800">
+          D'autres produits qui peuvent vous intéresser&nbsp;!
+        </h2>
+      </div>
+      <HorizontalScrollContainer className="py-1 px-1 gap-6" showArrows scrollAmount={220}>
+        {recommendedProducts.slice(0, 8).map((product) => (
+          <Link
+            key={product.id}
+            to={`/product/${product.id}`}
+            className="no-underline block transform hover:scale-[1.02] transition-transform duration-200 min-w-[140px]  snap-start"
+            tabIndex={0}
+          >
+            <ProductCard
+              image={product.image || '/icons/product-placeholder.png'}
+              title={product.name}
+              subtitle={`${product.priceTTC.toFixed(2)} €`}
+              stock={product.quantity}
+            />
+          </Link>
+        ))}
+      </HorizontalScrollContainer>
+    </div>
+  );
 }
 // import { useCartActions } from '@/app/cart/hooks/use-cart-actions';
 import { CartPageSkeleton } from '@/components/atoms/cart-skeleton';
+import { useToast } from '@/hooks/use-toast';
+import StockValidationModal from '@/components/organisms/stock-validation-modal';
 
 export default function CartPage() {
-    const navigate = useNavigate();
-    const { data: session } = useSession();
-    const { cart, isLoading, error } = useCart();
-    const {
-        incrementQuantity,
-        decrementQuantity,
-        removeFromCart,
-    } = useCartMutations();
+  const navigate = useNavigate();
+  const { info } = useToast();
+  const { data: session } = useSession();
+  console.log('session cart page', session);
+  const { cart, isLoading, error } = useCart(session?.user?.id || '');
+  const { incrementQuantity, decrementQuantity, removeFromCart } = useCartMutations();
 
-    const [deleteModalOpen, setDeleteModalOpen] = useState(false);
-    const [pendingDeleteId, setPendingDeleteId] = useState<string | null>(null);
+  const [deleteModalOpen, setDeleteModalOpen] = useState(false);
+  const [pendingDeleteId, setPendingDeleteId] = useState<string | null>(null);
+  const [stockValidation, setStockValidation] = useState<StockValidationResponse | null>(null);
+  const [isValidatingStock, setIsValidatingStock] = useState(false);
 
-    const handleRemove = (itemId: string) => {
-        setPendingDeleteId(itemId);
-        setDeleteModalOpen(true);
-    };
+  const handleRemove = (itemId: string) => {
+    setPendingDeleteId(itemId);
+    setDeleteModalOpen(true);
+  };
 
-    const confirmRemove = () => {
-        if (pendingDeleteId) {
-            removeFromCart.mutate(pendingDeleteId);
+  const confirmRemove = () => {
+    if (pendingDeleteId) {
+      removeFromCart.mutate(pendingDeleteId);
+    }
+    setDeleteModalOpen(false);
+    setPendingDeleteId(null);
+  };
+
+  const cancelRemove = () => {
+    setDeleteModalOpen(false);
+    setPendingDeleteId(null);
+  };
+
+  const handleIncrement = (itemId: string) => {
+    const item = cart?.items.find((item) => item.id === itemId);
+    if (item) {
+      incrementQuantity(itemId, item.quantity);
+    }
+  };
+
+  const handleDecrement = (itemId: string) => {
+    const item = cart?.items.find((item) => item.id === itemId);
+    if (item) {
+      decrementQuantity(itemId, item.quantity);
+    }
+  };
+
+  useEffect(() => {
+    let mounted = true;
+    const validate = async () => {
+      // Only validate server-side for authenticated users. Guest cart validation is not supported by the API.
+      if (!session?.user?.id) {
+        setStockValidation(null);
+        return;
+      }
+      if (!cart || cart.items.length === 0) {
+        setStockValidation(null);
+        return;
+      }
+      setIsValidatingStock(true);
+      try {
+        const payload = { userId: session.user.id };
+        const result = await CartAPI.validateStockThrottled(false, undefined, payload);
+        if (mounted) {
+          setStockValidation(result);
         }
-        setDeleteModalOpen(false);
-        setPendingDeleteId(null);
+      } catch (err) {
+        console.error('Failed to validate stock', err);
+        if (mounted) setStockValidation(null);
+      } finally {
+        if (mounted) setIsValidatingStock(false);
+      }
     };
-
-    const cancelRemove = () => {
-        setDeleteModalOpen(false);
-        setPendingDeleteId(null);
+    // Debounce a bit to avoid racing during rapid changes
+    const t = setTimeout(() => validate(), 200);
+    return () => {
+      mounted = false;
+      clearTimeout(t);
     };
+  }, [cart, session?.user?.id]);
 
-    const handleIncrement = (itemId: string) => {
-        const item = cart?.items.find(item => item.id === itemId);
-        if (item) {
-            incrementQuantity(itemId, item.quantity);
-        }
-    };
+  const calculateSubtotal = () => {
+    if (!cart) return 0;
+    return cart.items.reduce((total, item) => {
+      const price = Number(item.price) || 0;
+      const quantity = Number(item.quantity) || 0;
+      return total + price * quantity;
+    }, 0);
+  };
 
-    const handleDecrement = (itemId: string) => {
-        const item = cart?.items.find(item => item.id === itemId);
-        if (item) {
-            decrementQuantity(itemId, item.quantity);
-        }
-    };
+  const calculateShippingFee = () => {
+    // Frais de livraison fixe pour l'instant
+    return 4.99;
+  };
 
-    const calculateSubtotal = () => {
-        if (!cart) return 0;
-        return cart.items.reduce((total, item) => total + (item.price * item.quantity), 0);
-    };
+  const handleCheckout = () => {
+    if (!cart) return;
 
-    const calculateShippingFee = () => {
-        // Frais de livraison fixe pour l'instant
-        return 4.99;
-    };
+    // Check if user is authenticated
+    if (!session?.user) {
+      // Redirect to login with return URL to come back to checkout
+      info('Veuillez vous connecter pour continuer.');
+      navigate('/login?returnTo=/checkout');
 
-    const handleCheckout = () => {
-        if (!cart) return;
-        
-        // Check if user is authenticated
-        if (!session?.user) {
-            // Redirect to login with return URL to come back to checkout
-            navigate('/login?returnTo=/checkout');
-            return;
-        }
-        
-        // Navigate to checkout page
-        navigate('/checkout');
-    };
-
-    if (isLoading) {
-        return <CartPageSkeleton />;
+      return;
     }
 
-    if (error) {
-        return (
-            <div className="min-h-screen flex items-center justify-center">
-                <div className="text-red-500">Erreur lors du chargement du panier</div>
-            </div>
-        );
+    // Do not proceed if stock validation has failed
+    if (stockValidation && !stockValidation.valid) {
+      info(
+        'Impossible de continuer : un ou plusieurs produits ne sont plus disponibles. Veuillez mettre à jour votre panier.'
+      );
+      return;
     }
 
-    const hasSelectedItems = cart?.items.some(item => item.selected) || false;
+    // Navigate to checkout page
+    navigate('/checkout');
+  };
 
+  if (isLoading) {
+    return <CartPageSkeleton />;
+  }
+
+  if (error) {
     return (
-        <div className="min-h-screen  flex flex-col gap-6 p-4">
-
-            <div className="flex items-center justify-between">
-                <Label icon={<ShoppingCart className="text-vapo-purple-primary w-5 h-5" />} className="text-vapo-purple-primary text-lg font-semibold mb-2">
-                    Panier
-                </Label>
-                <Button variant="link" className="text-gray-500 text-sm underline px-0" onClick={() => navigate(-1)}>
-                    Retour à la liste
-                </Button>
-            </div>
-
-            {!cart || cart.items.length === 0 ? (
-                <div className="bg-white rounded-2xl p-6 text-center">
-                    <div className="text-gray-500 text-lg mb-4">Votre panier est vide</div>
-                    <Button variant="vapo" onClick={() => navigate('/')}>
-                        Continuer mes achats
-                    </Button>
-                </div>
-            ) : (
-                <>
-                    <div className="bg-white rounded-2xl py-6 flex flex-col gap-4 p-3">
-                        {error && (
-                            <div className="p-4 bg-red-50 text-red-600 rounded-lg">
-                                Une erreur est survenue lors de la mise à jour du panier.
-                                Veuillez réessayer.
-                            </div>
-                        )}
-                        {cart.items.map(item => (
-                            <CartItem
-                                key={item.id}
-                                item={{
-                                    id: item.id,
-                                    productId: item.productId,
-                                    name: item.name,
-                                    price: item.price,
-                                    image: item.image,
-                                    quantity: item.quantity,
-                                    selected: item.selected
-                                }}
-                                onRemove={() => handleRemove(item.id)}
-                                onQuantityChange={(quantity) => {
-                                    if (quantity > item.quantity) {
-                                        handleIncrement(item.id);
-                                    } else {
-                                        handleDecrement(item.id);
-                                    }
-                                }}
-                            />
-                        ))}
-                        <div className="border-t pt-4 space-y-2">
-                        
-                            <div className="flex justify-between text-gray-600">
-                                <span>Frais de livraison</span>
-                                <span>{formatPrice(calculateShippingFee())}</span>
-                            </div>
-                            <div className="flex justify-between items-center font-bold text-lg pt-2 border-t">
-                                <span>Total</span>
-                                <span className="text-2xl text-vapo-purple-primary">{formatPrice(calculateSubtotal() + calculateShippingFee())}</span>
-                            </div>
-                        </div>
-                    </div>
-                    
-                    <Button 
-                        variant="vapo" 
-                        className="w-full h-14 text-lg font-semibold mt-4"
-                        onClick={handleCheckout}
-                        disabled={!hasSelectedItems}
-                    >
-                        Effectuer ma commande
-                    </Button>
-                </>
-            )}
-
-            {cart && cart.items.length > 0 && <RecommendedProducts cartItems={cart.items} />}
-
-            <Dialog open={deleteModalOpen} onOpenChange={setDeleteModalOpen}>
-                <DialogContent>
-                    <DialogHeader>
-                        <DialogTitle>Supprimer l’article ?</DialogTitle>
-                    </DialogHeader>
-                    <div className="py-2 text-gray-700">Voulez-vous vraiment retirer cet article du panier ?</div>
-                    <DialogFooter>
-                        <Button variant="destructive" onClick={confirmRemove}>Supprimer</Button>
-                        <Button variant="outline" onClick={cancelRemove}>Fermer</Button>
-                    </DialogFooter>
-                </DialogContent>
-            </Dialog>
-        </div>
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="text-red-500">Erreur lors du chargement du panier</div>
+      </div>
     );
+  }
+
+  const hasSelectedItems = cart?.items.some((item) => item.selected) || false;
+
+  return (
+    <div className="min-h-screen  flex flex-col gap-6 p-4">
+      <div className="flex items-center justify-between">
+        <Label
+          icon={<ShoppingCart className="text-vapo-purple-primary w-5 h-5" />}
+          className="text-vapo-purple-primary text-lg font-semibold mb-2"
+        >
+          Panier
+        </Label>
+        <Button
+          variant="link"
+          className="text-gray-500 text-sm underline px-0"
+          onClick={() => navigate(-1)}
+        >
+          Retour à la liste
+        </Button>
+      </div>
+
+      {!cart || cart.items.length === 0 ? (
+        <div className="bg-white rounded-2xl p-6 text-center">
+          <div className="text-gray-500 text-lg mb-4">Votre panier est vide</div>
+          <Button variant="vapo" onClick={() => navigate('/')}>
+            Continuer mes achats
+          </Button>
+        </div>
+      ) : (
+        <>
+      <div className="bg-white rounded-2xl py-6 flex flex-col gap-4 p-3">
+      {!session?.user && (
+        <div className="p-3 mb-2 rounded-lg bg-blue-50 text-blue-700 flex items-center justify-between">
+          <div>Connectez-vous pour vérifier le stock et finaliser la commande.</div>
+          <Button variant="outline" size="sm" onClick={() => navigate('/login?returnTo=/cart')}>Se connecter</Button>
+        </div>
+      )}
+            {error && (
+              <div className="p-4 bg-red-50 text-red-600 rounded-lg">
+                Une erreur est survenue lors de la mise à jour du panier. Veuillez réessayer.
+              </div>
+            )}
+            {isValidatingStock && (
+              <div className="p-4 bg-yellow-50 text-yellow-700 rounded-lg">
+                Vérification du stock...
+              </div>
+            )}
+            {stockValidation && !stockValidation.valid && (
+              <div className="p-4 bg-red-50 text-red-600 rounded-lg">
+                <div className="font-semibold mb-2">
+                  Certains produits ont un problème de stock :
+                </div>
+                <div className="space-y-2">
+                  {stockValidation.items
+                    .filter((i) => !i.isAvailable)
+                    .map((item) => {
+                      const cartItem = cart?.items.find((ci) => ci.productId === item.productId);
+                      return (
+                        <div
+                          key={item.productId}
+                          className="text-sm bg-white p-3 rounded border border-red-200"
+                        >
+                          <p className="font-medium text-gray-900">{cartItem?.name || 'Produit'}</p>
+                          <p className="text-gray-600 mt-1">
+                            Quantité demandée: {item.requestedQuantity} - Disponible:{' '}
+                            {item.availableQuantity}
+                          </p>
+                        </div>
+                      );
+                    })}
+                </div>
+                <div className="mt-3">
+                  <Button variant="outline" size="sm" onClick={() => navigate('/cart')}>
+                    Mettre à jour le panier
+                  </Button>
+                </div>
+              </div>
+            )}
+            {cart.items.map((item) => (
+              <CartItem
+                key={item.id}
+                item={{
+                  id: item.id,
+                  productId: item.productId,
+                  name: item.name,
+                  price: item.price,
+                  image: item.image,
+                  quantity: item.quantity,
+                  selected: item.selected,
+                }}
+                onRemove={() => handleRemove(item.id)}
+                onQuantityChange={(quantity) => {
+                  if (quantity > item.quantity) {
+                    handleIncrement(item.id);
+                  } else {
+                    handleDecrement(item.id);
+                  }
+                }}
+              />
+            ))}
+            <div className="border-t pt-4 space-y-2">
+              <div className="flex justify-between text-gray-600">
+                <span>Frais de livraison</span>
+                <span>{formatPrice(calculateShippingFee())}</span>
+              </div>
+              <div className="flex justify-between items-center font-bold text-lg pt-2 border-t">
+                <span>Total</span>
+                <span className="text-2xl text-vapo-purple-primary">
+                  {formatPrice(calculateSubtotal() + calculateShippingFee())}
+                </span>
+              </div>
+            </div>
+          </div>
+
+          <Button
+            variant="vapo"
+            className="w-full h-14 text-lg font-semibold mt-4"
+            onClick={handleCheckout}
+            disabled={!hasSelectedItems || stockValidation?.valid === false}
+          >
+            Effectuer ma commande
+          </Button>
+        </>
+      )}
+
+      {cart && cart.items.length > 0 && <RecommendedProducts cartItems={cart.items} />}
+
+      <Dialog open={deleteModalOpen} onOpenChange={setDeleteModalOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Supprimer l’article ?</DialogTitle>
+          </DialogHeader>
+          <div className="py-2 text-gray-700">
+            Voulez-vous vraiment retirer cet article du panier ?
+          </div>
+          <DialogFooter>
+            <Button variant="destructive" onClick={confirmRemove}>
+              Supprimer
+            </Button>
+            <Button variant="outline" onClick={cancelRemove}>
+              Fermer
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      <StockValidationModal />
+    </div>
+  );
 }
