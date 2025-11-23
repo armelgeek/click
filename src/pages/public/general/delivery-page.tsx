@@ -85,6 +85,20 @@ export default function DeliveryPage() {
     const [submitError, setSubmitError] = useState<string | null>(null);
     const [multiStoreWarning, setMultiStoreWarning] = useState<string | null>(null);
 
+    // Helper function to extract store IDs from cart items
+    const extractStoreIds = (items: typeof cart.items): Set<string> => {
+        const storeIds = new Set<string>();
+        if (!items) return storeIds;
+        
+        items.forEach(item => {
+            const itemStoreId = (item as { storeId?: string })?.storeId;
+            if (itemStoreId) {
+                storeIds.add(itemStoreId);
+            }
+        });
+        return storeIds;
+    };
+
     // Validate that all cart items come from the same store
     useEffect(() => {
         if (!cart?.items || cart.items.length === 0) {
@@ -92,13 +106,7 @@ export default function DeliveryPage() {
             return;
         }
 
-        const storeIds = new Set<string>();
-        cart.items.forEach(item => {
-            const itemStoreId = (item as { storeId?: string })?.storeId;
-            if (itemStoreId) {
-                storeIds.add(itemStoreId);
-            }
-        });
+        const storeIds = extractStoreIds(cart.items);
 
         if (storeIds.size > 1) {
             setMultiStoreWarning(
@@ -315,14 +323,8 @@ export default function DeliveryPage() {
                 return;
             }
 
-            // Get all unique store IDs from cart items
-            const storeIds = new Set<string>();
-            cart.items.forEach(item => {
-                const itemStoreId = (item as { storeId?: string })?.storeId;
-                if (itemStoreId) {
-                    storeIds.add(itemStoreId);
-                }
-            });
+            // Get all unique store IDs from cart items using helper
+            const storeIds = extractStoreIds(cart.items);
 
             // Validate we have at least one store ID
             if (storeIds.size === 0) {
