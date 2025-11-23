@@ -20,7 +20,15 @@ import { useSession } from '@/shared/config/auth.config';
 
 const deliveryModes = [
     { label: 'Livraison express', value: 'express' },
+    { label: 'Livraison express avec Happy Hour', value: 'express_happy_hour', description: 'Livraison ultra-rapide pendant les heures de pointe' },
     { label: 'Livraison planifiée', value: 'planified' },
+];
+
+const deliveryConfirmationTypes = [
+    { label: 'Confirmation simple', value: 'simple', description: 'Confirmation de réception sans preuve' },
+    { label: 'Avec signature', value: 'signature', description: 'Signature numérique requise à la livraison' },
+    { label: 'Avec photo', value: 'photo', description: 'Photo de la livraison requise' },
+    { label: 'Retour magasin si absent', value: 'return_store', description: 'Retour au magasin si vous êtes absent' },
 ];
 
 const availableHours = [
@@ -43,9 +51,10 @@ export default function DeliveryPage() {
     const [showWarningModal, setShowWarningModal] = useState(false);
     const [stockValidation, setStockValidation] = useState<StockValidationResponse | null>(null);
     const [isSimulatingPayment, setIsSimulatingPayment] = useState(false);
-    const [mode, setMode] = useState<'express' | 'planified'>('express');
+    const [mode, setMode] = useState<'express' | 'express_happy_hour' | 'planified'>('express');
     const [selectedDate, setSelectedDate] = useState(new Date());
     const [selectedHour, setSelectedHour] = useState('');
+    const [confirmationType, setConfirmationType] = useState<'simple' | 'signature' | 'photo' | 'return_store'>('simple');
     const [form, setForm] = useState({
         name: '',
         phone: '',
@@ -74,6 +83,39 @@ export default function DeliveryPage() {
     const [geoError, setGeoError] = useState<string | null>(null);
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [submitError, setSubmitError] = useState<string | null>(null);
+    const [multiStoreWarning, setMultiStoreWarning] = useState<string | null>(null);
+
+    // Helper function to extract store IDs from cart items
+    const extractStoreIds = (items: typeof cart.items): Set<string> => {
+        const storeIds = new Set<string>();
+        if (!items) return storeIds;
+        
+        items.forEach(item => {
+            const itemStoreId = (item as { storeId?: string })?.storeId;
+            if (itemStoreId) {
+                storeIds.add(itemStoreId);
+            }
+        });
+        return storeIds;
+    };
+
+    // Validate that all cart items come from the same store
+    useEffect(() => {
+        if (!cart?.items || cart.items.length === 0) {
+            setMultiStoreWarning(null);
+            return;
+        }
+
+        const storeIds = extractStoreIds(cart.items);
+
+        if (storeIds.size > 1) {
+            setMultiStoreWarning(
+                `Attention : Votre panier contient des articles de ${storeIds.size} magasins différents. Seuls les articles du premier magasin seront commandés.`
+            );
+        } else {
+            setMultiStoreWarning(null);
+        }
+    }, [cart?.items]);
 
     const calculateSubtotal = () => {
         if (!cart) return 0;
@@ -85,6 +127,10 @@ export default function DeliveryPage() {
     };
 
     const calculateShippingFee = () => {
+        // Happy Hour express delivery has a premium
+        if (mode === 'express_happy_hour') {
+            return 7.99;
+        }
         return 4.99;
     };
 
@@ -258,18 +304,57 @@ export default function DeliveryPage() {
             }
             const deliveryInfo = mode === 'express'
                 ? 'Livraison express (le jour même)'
+                : mode === 'express_happy_hour'
+                ? 'Livraison express avec Happy Hour (ultra-rapide)'
                 : `Livraison planifiée le ${selectedDate.toLocaleDateString('fr-FR')} à ${selectedHour}`;
+
+            const confirmationInfo = confirmationType === 'simple'
+                ? 'Confirmation simple'
+                : confirmationType === 'signature'
+                ? 'Avec preuve signature'
+                : confirmationType === 'photo'
+                ? 'Avec preuve photo'
+                : 'Retour magasin si absent';
+
+            // Extract and validate storeId from cart items
+            if (!cart?.items || cart.items.length === 0) {
+                setSubmitError('Le panier est vide');
+                setIsSubmitting(false);
+                return;
+            }
+
+            // Get all unique store IDs from cart items using helper
+            const storeIds = extractStoreIds(cart.items);
+
+            // Validate we have at least one store ID
+            if (storeIds.size === 0) {
+                setSubmitError('Impossible de déterminer le magasin. Veuillez vérifier votre panier.');
+                setIsSubmitting(false);
+                console.error('No storeId found in any cart items');
+                return;
+            }
+
+            // Warn if multiple stores (use first one)
+            if (storeIds.size > 1) {
+                console.warn(`Cart contains items from ${storeIds.size} different stores. Using first store.`);
+            }
+
+            const storeId = Array.from(storeIds)[0];
 
             const response = await createOrder.mutateAsync({
                 userId: session?.user?.id || '',
+                storeId: storeId,
                 addressId: addressId,
-                notes: `${deliveryInfo} - Téléphone: ${form.phone}`,
-                mode,
+                notes: `${deliveryInfo} - Téléphone: ${form.phone} - Confirmation: ${confirmationInfo}`,
+                mode: (mode === 'express_happy_hour' ? 'express' : mode) as 'express' | 'planified',
                 planifiedDate: mode === 'planified' ? selectedDate.toISOString().split('T')[0] : undefined,
                 planifiedHour: mode === 'planified' ? selectedHour : undefined,
             });
-            if (response && response.id) {
-                navigate(`/order-success/${response.id}`);
+            
+            // Handle both new and legacy response formats
+            const orderId = response?.order?.id || (response as { id?: string })?.id;
+            if (orderId) {
+                navigate(`/order-success/${orderId}`);
             } else {
                 setSubmitError('Erreur lors de la création de la commande. Veuillez réessayer.');
             }
@@ -339,6 +424,15 @@ export default function DeliveryPage() {
             <div ref={formContainerRef} className="bg-white rounded-2xl p-6 flex flex-col gap-4">
                 <div className="text-lg font-semibold mb-1">Détail de la livraison</div>
                 <div className="text-sm text-gray-700 mb-2">Veuillez remplir les informations en bas concernant l'adresse de livraison.</div>
+
+                {multiStoreWarning && (
+                    <div className="p-4 bg-orange-50 border border-orange-200 rounded-lg text-orange-700">
+                        <div className="flex items-start gap-2">
+                            <AlertTriangle className="w-5 h-5 mt-0.5 shrink-0" />
+                            <p>{multiStoreWarning}</p>
+                        </div>
+                    </div>
+                )}
 
                 {submitError && (
                     <div className="p-4 bg-red-50 border border-red-200 rounded-lg text-red-700">
@@ -562,18 +656,27 @@ export default function DeliveryPage() {
             <div className="bg-white rounded-2xl p-6 flex flex-col gap-4">
                 <div className="text-lg font-semibold mb-1">Choix de la livraison</div>
                 <div className="text-sm text-gray-700 mb-2">Sélectionner l'option de livraison que vous voulez.</div>
-                <div className="flex gap-8 mb-2">
+                <div className="flex flex-col gap-3 mb-2">
                     {deliveryModes.map(opt => (
                         <button
                             key={opt.value}
                             type="button"
-                            onClick={() => setMode(opt.value as 'express' | 'planified')}
-                            className={`flex items-center gap-2 text-sm font-medium focus:outline-none ${mode === opt.value ? 'text-vapo-purple-primary' : 'text-gray-700'}`}
+                            onClick={() => setMode(opt.value as 'express' | 'express_happy_hour' | 'planified')}
+                            className={`flex items-start gap-3 p-3 rounded-lg border-2 text-left transition-colors ${mode === opt.value ? 'border-vapo-purple-primary bg-purple-50' : 'border-gray-200 hover:border-gray-300'}`}
                         >
-                            <span className={`w-6 h-6 rounded-full border-2 flex items-center justify-center ${mode === opt.value ? 'border-vapo-purple-primary' : 'border-gray-300'}`}>
+                            <span className={`w-6 h-6 rounded-full border-2 flex items-center justify-center flex-shrink-0 mt-0.5 ${mode === opt.value ? 'border-vapo-purple-primary' : 'border-gray-300'}`}>
                                 {mode === opt.value && <span className="w-3 h-3 bg-vapo-purple-primary rounded-full" />}
                             </span>
-                            {opt.label}
+                            <div className="flex-1">
+                                <div className={`font-semibold ${mode === opt.value ? 'text-vapo-purple-primary' : 'text-gray-900'}`}>
+                                    {opt.label}
+                                </div>
+                                {opt.description && (
+                                    <div className="text-sm text-gray-600 mt-1">
+                                        {opt.description}
+                                    </div>
+                                )}
+                            </div>
                         </button>
                     ))}
                 </div>
@@ -582,6 +685,14 @@ export default function DeliveryPage() {
                         <div>
                             <div className="font-semibold text-vapo-purple-primary mb-1">Livraison express</div>
                             <div className="text-sm text-vapo-purple-primary">Un de nos livreurs prendra la course en charge dans les meilleurs délais, pour effectuer votre livraison.</div>
+                        </div>
+                    </div>
+                )}
+                {mode === 'express_happy_hour' && (
+                    <div className="bg-orange-50 border border-orange-200 rounded-xl p-4 flex items-center gap-4">
+                        <div>
+                            <div className="font-semibold text-orange-600 mb-1">Livraison express avec Happy Hour</div>
+                            <div className="text-sm text-orange-700">Service de livraison ultra-rapide disponible pendant les heures de pointe. Garantie d'arrivée en moins de 30 minutes ! (+3€)</div>
                         </div>
                     </div>
                 )}
@@ -637,6 +748,69 @@ export default function DeliveryPage() {
                     </div>
                 )}
             </div>
+
+            {/* Delivery Confirmation Type Section */}
+            <div className="bg-white rounded-2xl p-6 flex flex-col gap-4">
+                <div className="text-lg font-semibold mb-1">Type de confirmation de livraison</div>
+                <div className="text-sm text-gray-700 mb-2">Choisissez comment vous souhaitez confirmer la réception de votre commande.</div>
+                <div className="flex flex-col gap-3">
+                    {deliveryConfirmationTypes.map(opt => (
+                        <button
+                            key={opt.value}
+                            type="button"
+                            onClick={() => setConfirmationType(opt.value as 'simple' | 'signature' | 'photo' | 'return_store')}
+                            className={`flex items-start gap-3 p-3 rounded-lg border-2 text-left transition-colors ${confirmationType === opt.value ? 'border-vapo-purple-primary bg-purple-50' : 'border-gray-200 hover:border-gray-300'}`}
+                        >
+                            <span className={`w-6 h-6 rounded-full border-2 flex items-center justify-center flex-shrink-0 mt-0.5 ${confirmationType === opt.value ? 'border-vapo-purple-primary' : 'border-gray-300'}`}>
+                                {confirmationType === opt.value && <span className="w-3 h-3 bg-vapo-purple-primary rounded-full" />}
+                            </span>
+                            <div className="flex-1">
+                                <div className={`font-semibold ${confirmationType === opt.value ? 'text-vapo-purple-primary' : 'text-gray-900'}`}>
+                                    {opt.label}
+                                </div>
+                                <div className="text-sm text-gray-600 mt-1">
+                                    {opt.description}
+                                </div>
+                            </div>
+                        </button>
+                    ))}
+                </div>
+
+                {/* Additional info based on confirmation type */}
+                {confirmationType === 'signature' && (
+                    <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mt-2">
+                        <div className="font-medium text-blue-900 mb-1">Signature numérique</div>
+                        <div className="text-sm text-blue-800">
+                            Le livreur vous demandera de signer électroniquement sur son appareil pour confirmer la réception.
+                        </div>
+                    </div>
+                )}
+                {confirmationType === 'photo' && (
+                    <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mt-2">
+                        <div className="font-medium text-blue-900 mb-1">Preuve photographique</div>
+                        <div className="text-sm text-blue-800">
+                            Le livreur prendra une photo de la livraison effectuée. Vous recevrez cette preuve par email.
+                        </div>
+                    </div>
+                )}
+                {confirmationType === 'return_store' && (
+                    <div className="bg-orange-50 border border-orange-200 rounded-lg p-4 mt-2">
+                        <div className="font-medium text-orange-900 mb-1">Retour au magasin</div>
+                        <div className="text-sm text-orange-800">
+                            Si vous êtes absent lors de la livraison, votre commande sera retournée au magasin. Vous pourrez la récupérer sur présentation de votre CNI.
+                        </div>
+                    </div>
+                )}
+                {confirmationType === 'simple' && (
+                    <div className="bg-gray-50 border border-gray-200 rounded-lg p-4 mt-2">
+                        <div className="font-medium text-gray-900 mb-1">Confirmation simple</div>
+                        <div className="text-sm text-gray-800">
+                            Le livreur confirmera simplement la remise de votre commande dans l'application.
+                        </div>
+                    </div>
+                )}
+            </div>
+
             <Button
                 variant="vapo"
                 className="w-full h-14 text-lg font-semibold mt-2"
