@@ -283,17 +283,29 @@ export default function DeliveryPage() {
                 ? 'Avec preuve photo'
                 : 'Retour magasin si absent';
 
+            // Extract storeId from cart items with validation
+            const storeId = cart?.items && cart.items.length > 0 
+                ? (cart.items[0] as { storeId?: string })?.storeId || ''
+                : '';
+            
+            if (!storeId && cart?.items && cart.items.length > 0) {
+                console.warn('No storeId found in cart items');
+            }
+
             const response = await createOrder.mutateAsync({
                 userId: session?.user?.id || '',
-                storeId: (cart?.items?.[0] as { storeId?: string })?.storeId || '',
+                storeId: storeId,
                 addressId: addressId,
                 notes: `${deliveryInfo} - Téléphone: ${form.phone} - Confirmation: ${confirmationInfo}`,
                 mode: (mode === 'express_happy_hour' ? 'express' : mode) as 'express' | 'planified',
                 planifiedDate: mode === 'planified' ? selectedDate.toISOString().split('T')[0] : undefined,
                 planifiedHour: mode === 'planified' ? selectedHour : undefined,
             });
-            if (response && response.order && response.order.id) {
-                navigate(`/order-success/${response.order.id}`);
+            
+            // Handle both new and legacy response formats
+            const orderId = response?.order?.id || (response as { id?: string })?.id;
+            if (orderId) {
+                navigate(`/order-success/${orderId}`);
             } else {
                 setSubmitError('Erreur lors de la création de la commande. Veuillez réessayer.');
             }
