@@ -83,6 +83,31 @@ export default function DeliveryPage() {
     const [geoError, setGeoError] = useState<string | null>(null);
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [submitError, setSubmitError] = useState<string | null>(null);
+    const [multiStoreWarning, setMultiStoreWarning] = useState<string | null>(null);
+
+    // Validate that all cart items come from the same store
+    useEffect(() => {
+        if (!cart?.items || cart.items.length === 0) {
+            setMultiStoreWarning(null);
+            return;
+        }
+
+        const storeIds = new Set<string>();
+        cart.items.forEach(item => {
+            const itemStoreId = (item as { storeId?: string })?.storeId;
+            if (itemStoreId) {
+                storeIds.add(itemStoreId);
+            }
+        });
+
+        if (storeIds.size > 1) {
+            setMultiStoreWarning(
+                `Attention : Votre panier contient des articles de ${storeIds.size} magasins différents. Seuls les articles du premier magasin seront commandés.`
+            );
+        } else {
+            setMultiStoreWarning(null);
+        }
+    }, [cart?.items]);
 
     const calculateSubtotal = () => {
         if (!cart) return 0;
@@ -283,14 +308,36 @@ export default function DeliveryPage() {
                 ? 'Avec preuve photo'
                 : 'Retour magasin si absent';
 
-            // Extract storeId from cart items with validation
-            const storeId = cart?.items && cart.items.length > 0 
-                ? (cart.items[0] as { storeId?: string })?.storeId || ''
-                : '';
-            
-            if (!storeId && cart?.items && cart.items.length > 0) {
-                console.warn('No storeId found in cart items');
+            // Extract and validate storeId from cart items
+            if (!cart?.items || cart.items.length === 0) {
+                setSubmitError('Le panier est vide');
+                setIsSubmitting(false);
+                return;
             }
+
+            // Get all unique store IDs from cart items
+            const storeIds = new Set<string>();
+            cart.items.forEach(item => {
+                const itemStoreId = (item as { storeId?: string })?.storeId;
+                if (itemStoreId) {
+                    storeIds.add(itemStoreId);
+                }
+            });
+
+            // Validate we have at least one store ID
+            if (storeIds.size === 0) {
+                setSubmitError('Impossible de déterminer le magasin. Veuillez vérifier votre panier.');
+                setIsSubmitting(false);
+                console.error('No storeId found in any cart items');
+                return;
+            }
+
+            // Warn if multiple stores (use first one)
+            if (storeIds.size > 1) {
+                console.warn(`Cart contains items from ${storeIds.size} different stores. Using first store.`);
+            }
+
+            const storeId = Array.from(storeIds)[0];
 
             const response = await createOrder.mutateAsync({
                 userId: session?.user?.id || '',
@@ -375,6 +422,15 @@ export default function DeliveryPage() {
             <div ref={formContainerRef} className="bg-white rounded-2xl p-6 flex flex-col gap-4">
                 <div className="text-lg font-semibold mb-1">Détail de la livraison</div>
                 <div className="text-sm text-gray-700 mb-2">Veuillez remplir les informations en bas concernant l'adresse de livraison.</div>
+
+                {multiStoreWarning && (
+                    <div className="p-4 bg-orange-50 border border-orange-200 rounded-lg text-orange-700">
+                        <div className="flex items-start gap-2">
+                            <AlertTriangle className="w-5 h-5 mt-0.5 shrink-0" />
+                            <p>{multiStoreWarning}</p>
+                        </div>
+                    </div>
+                )}
 
                 {submitError && (
                     <div className="p-4 bg-red-50 border border-red-200 rounded-lg text-red-700">
